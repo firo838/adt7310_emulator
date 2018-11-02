@@ -182,7 +182,7 @@ adt7310(adt7310_t *handle, u_int8_t input, int cs)
             buffer[0] = handle->reg.reg0;
             write(cs, &buffer, 1);
             #ifdef PRINT_SOCK_COMM
-                printf("write : %02hhx¥n", buffer);
+                printf("write : %02hhx\n", buffer[0]);
             #endif
 
             break;
@@ -190,7 +190,7 @@ adt7310(adt7310_t *handle, u_int8_t input, int cs)
             // read_flagがenableの時，必ずしも下のread関数が実行されない（configuration Byteが送られてこない）事があるはず
             if(read(cs, &in, 1) > 0){
                 #ifdef PRINT_SOCK_COMM
-                    printf("read : %02hhx¥n", in);
+                    printf("read : %02hhx\n", in);
                 #endif
                 // change resolution.
                 if((in & 0x80) == 0x80)  handle->reg.reg1 |= 0x80;
@@ -205,7 +205,7 @@ adt7310(adt7310_t *handle, u_int8_t input, int cs)
                     buffer[0] = handle->reg.reg1;
                     if(write(cs, &buffer, 1) > 0){
                         #ifdef PRINT_SOCK_COMM
-                            printf("write : %02hhx¥n", buffer);
+                            printf("write : %02hhx\n", buffer[0]);
                         #endif
                         handle->reg.reg0 |= 0x80;
                     }
@@ -224,7 +224,7 @@ adt7310(adt7310_t *handle, u_int8_t input, int cs)
                 buffer[i] = handle->reg.reg2[i];
                 write(cs, &buffer[i], 1);
                 #ifdef PRINT_SOCK_COMM
-                    printf("write : %02hhx¥n", buffer);
+                    printf("write : %02hhx\n", buffer[i]);
                 #endif
             }
 
@@ -236,7 +236,7 @@ adt7310(adt7310_t *handle, u_int8_t input, int cs)
                 buffer[i] = handle->reg.reg3[i];
                 write(cs, &buffer[i], 1);
                 #ifdef PRINT_SOCK_COMM
-                    printf("write : %02hhx¥n", buffer);
+                    printf("write : %02hhx\n", buffer[i]);
                 #endif
             }
             
@@ -248,7 +248,7 @@ adt7310(adt7310_t *handle, u_int8_t input, int cs)
                 buffer[i] = handle->reg.reg4[i];
                 write(cs, &buffer[i], 1);
                 #ifdef PRINT_SOCK_COMM
-                    printf("write : %02hhx¥n", buffer);
+                    printf("write : %02hhx\n", buffer[i]);
                 #endif
             }
             
@@ -260,7 +260,7 @@ adt7310(adt7310_t *handle, u_int8_t input, int cs)
                 buffer[i] = handle->reg.reg5[i];
                 write(cs, &buffer[i], 1);
                 #ifdef PRINT_SOCK_COMM
-                    printf("write : %02hhx¥n", buffer);
+                    printf("write : %02hhx\n", buffer[i]);
                 #endif
             }
             
@@ -272,7 +272,7 @@ adt7310(adt7310_t *handle, u_int8_t input, int cs)
                 buffer[i] = handle->reg.reg6[i];
                 write(cs, &buffer[i], 1);
                 #ifdef PRINT_SOCK_COMM
-                    printf("write : %02hhx¥n", buffer);
+                    printf("write : %02hhx\n", buffer[i]);
                 #endif
             }
             
@@ -284,7 +284,7 @@ adt7310(adt7310_t *handle, u_int8_t input, int cs)
                 buffer[i] = handle->reg.reg7[i];
                 write(cs, &buffer[i], 1);
                 #ifdef PRINT_SOCK_COMM
-                    printf("write : %02hhx¥n", buffer);
+                    printf("write : %02hhx\n", buffer[i]);
                 #endif
             }
             
@@ -356,7 +356,7 @@ main(int argc, char *argv[])
             // 入力受付
             if(read(cs, &in, 1) > 0){
                 #ifdef PRINT_SOCK_COMM
-                    printf("read : %02hhx¥n", in);
+                    printf("read : %02hhx\n", in);
                 #endif
                 adt7310(handle, in, cs);
             }
@@ -372,7 +372,7 @@ main(int argc, char *argv[])
                     buffer[i] = handle->reg.reg2[i];
                     write(cs, &buffer[i], 1);
                     #ifdef PRINT_SOCK_COMM
-                        printf("write : %02hhx¥n", buffer);
+                        printf("write : %02hhx\n", buffer[i]);
                     #endif
                     handle->reg.reg0 |= 0x80;
                 }
