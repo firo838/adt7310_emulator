@@ -42,7 +42,7 @@ int
 adt7310_tick(u_int8_t input)
 {
 /*
- *  Manipulate mpl115a1_t accordingly
+ *  Manipulate mpl115a1_t accordingly.
  */
     return 0;
 }
@@ -61,7 +61,8 @@ u_int16_t
 gen_temp()
 {
     /*
-     * 基本が16bitモードなので，16bit用の温度を生成する
+     * The basic mode is 16 bit mode. Therefore, 
+     * it generates temperature for 16 bit.
      */
     return 0x0DC6;
 }
@@ -132,21 +133,12 @@ set_temp(adt7310_t *handle)
     /*
      *  Returning Temperature Value.
      */
-    
-    if((handle->reg.reg1 & 0x80) == 0x80){
-        // 16bit mode.
-        u_int16_t temp = gen_temp();
-        handle->reg.reg2[0] = (u_int8_t)(temp >> 8);
-        handle->reg.reg2[1] = (u_int8_t)(temp & 0xff);
-    }else{
-        // 13bit mode.
-        // 13bit用の処理を追記する予定
-        u_int16_t temp = gen_temp();
-        handle->reg.reg2[0] = (u_int8_t)(temp >> 8);
-        handle->reg.reg2[1] = (u_int8_t)(temp & 0xff);
-    }
+    u_int16_t temp = gen_temp2(handle);
 
-    // 温度読み出しが可能になったらセットする RDY = 0 is read ok.
+    handle->reg.reg2[0] = (u_int8_t)(temp >> 8);
+    handle->reg.reg2[1] = (u_int8_t)(temp & 0xff);
+
+    // Set when temperature reading becomes possible. RDY = 0 is read ok.
     handle->reg.reg0 &= 0x7f;
 }
 
@@ -351,7 +343,7 @@ main(int argc, char *argv[])
         }
         fprintf(stderr, "connection established\n");
         for(;;) {
-            // 入力受付
+            // input
             if(read(cs, &in, 1) > 0){
                 #ifdef PRINT_SOCK_COMM
                     printf("read : %02hhx\n", in);
@@ -359,7 +351,7 @@ main(int argc, char *argv[])
                 adt7310(handle, in, cs);
             }
 
-            // 出力処理
+            // output
             // chech mode
             mode = handle->reg.reg1 & 0x60;
             if((mode == 0x00) && ((handle->reg.reg0 & 0x80) == 0x00)){
