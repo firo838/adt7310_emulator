@@ -1,9 +1,7 @@
 /*
-*
-* This is a ADT3710 emulator.
+* ADT3710 emulator.
 * Create by rosev.
-* Aug. 4. 2018.
-*
+* Nov. 2. 2018.
 */
 #include "adt7310.h"
 
