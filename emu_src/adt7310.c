@@ -71,6 +71,11 @@ gen_temp()
 u_int16_t
 gen_temp2(adt7310_t *handle)
 {   
+    u_int16_t temp = 0x0DC6;    // default
+    int integer, i, fraction;
+    char fra[8];
+    float a, t = random_temp();
+
     // res_flag : 0 is 13 bit mode, 1 is 16 bit mode.
     int res_flag = -1;
     // check resolution
@@ -82,13 +87,8 @@ gen_temp2(adt7310_t *handle)
         res_flag = 1;
     }
 
-    float t = random_temp();
-    int integer, i, fraction;
-    u_int16_t temp = 0x0DC6;    // default
-    char fra[8];
-
     integer = t;
-    float a = (t - integer);
+    a = (t - integer);
 	
 	for(i = 0; i < 8; i++){
 		a = a * 2;
