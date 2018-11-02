@@ -121,8 +121,7 @@ gen_temp2(adt7310_t *handle)
 
 float
 random_temp(){
-    //double t = 27.125;
-    double a, t;
+    float a, t;
     srand((unsigned int)time(NULL));
 	t = (rand()%10000)/1000 + 15.0;
 
