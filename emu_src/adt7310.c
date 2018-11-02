@@ -68,6 +68,64 @@ gen_temp()
     return 0x0DC6;
 }
 
+u_int16_t
+gen_temp2(adt7310_t *handle)
+{   
+    // res_flag : 0 is 13 bit mode, 1 is 16 bit mode.
+    int res_flag = -1;
+    // check resolution
+    if((handle->reg.reg1 & 0x80) == 0x00){
+        // 13bit mode
+        res_flag = 0;
+    }else{
+        // 16bit mode
+        res_flag = 1;
+    }
+
+    float t = random_temp();
+    int integer, i, fraction;
+    u_int16_t temp = 0x0DC6;    // default
+    char fra[8];
+
+    integer = t;
+    float a = (t - integer);
+	
+	for(i = 0; i < 8; i++){
+		a = a * 2;
+	    if(a >= 1){
+    		fra[i] = '1';
+			a -= 1;
+		}else{
+    		fra[i] = '0';
+	    }
+		printf("i:%d , a = %f\n",i,a);
+    }
+	fraction = strtol(fra, NULL, 2);
+
+    // res_flag == 0
+    if(res_flag == 0){
+        // 13bit mode processing.
+        temp = integer << 6;
+        temp |= fraction >> 1;
+        temp &= 0xfff8;
+    }
+    // res_flag == 1
+    if(res_flag == 1){
+        // 16bit mode processing.
+	    temp = integer << 6;
+        temp |= fraction >> 1;
+    }
+
+    return temp;
+}
+
+float
+random_temp(){
+    double t = 27.125;
+
+    return t;
+}
+
 void
 set_temp(adt7310_t *handle)
 {

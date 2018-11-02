@@ -46,6 +46,8 @@ adt7310_t *adt7310_init(void);
 int adt7310_tick(u_int8_t input);
 void get_temp(adt7310_t *handle);
 u_int16_t gen_temp();
+u_int16_t gen_temp2(adt7310_t *handle);
+float random_temp();
 void set_temp(adt7310_t *handle);
 void adt7310(adt7310_t *handle, u_int8_t input, int cs);
 int get_server_socket(const char *const path);
