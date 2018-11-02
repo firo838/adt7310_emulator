@@ -56,7 +56,6 @@ is defined.
 Use it according to your needs.
 
 # Unimplemented ISSUE
-- Function related to temperature generation (fixed value is set now, 0×0DC6 (27.547°C. at 16 bit resolution))
 - Behavior when specifying configuration command
 
 # Special Thunks
