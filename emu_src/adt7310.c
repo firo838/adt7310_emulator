@@ -336,7 +336,14 @@ main(int argc, char *argv[])
         exit(EXIT_FAILURE);
     }
 
+    #ifdef DEBUGPRINT
+            printf("Call main func.\n");
+    #endif
+
     for(;;) {
+        #ifdef DEBUGPRINT
+            printf("Call main for 1.\n");
+        #endif
         if((cs = accept(s, NULL, NULL)) == -1) {
             perror("accept");
             exit(EXIT_FAILURE);
@@ -344,7 +351,7 @@ main(int argc, char *argv[])
         fprintf(stderr, "connection established\n");
         for(;;) {
             #ifdef DEBUGPRINT
-                printf("Call main for.\n");
+                printf("Call main for 2.\n");
             #endif
             // input
             if(read(cs, &in, 1) > 0){
