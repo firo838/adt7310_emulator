@@ -25,6 +25,8 @@
 
 #define SLEEP_TIME                      1
 
+#define DEBUGPRINT
+
 typedef struct {
     u_int8_t reg0;      // status
     u_int8_t reg1;      // Configuration

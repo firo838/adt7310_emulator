@@ -343,6 +343,9 @@ main(int argc, char *argv[])
         }
         fprintf(stderr, "connection established\n");
         for(;;) {
+            #ifdef DEBUGPRINT
+                printf("Call main for.\n");
+            #endif
             // input
             if(read(cs, &in, 1) > 0){
                 #ifdef PRINT_SOCK_COMM
