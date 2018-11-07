@@ -14,7 +14,7 @@
 
 // define debug codes.
 #define PRINT_SOCK_COMM
-#define DEBUGPRINTCALL
+//#define DEBUGPRINTCALL
 
 #define REG_NAME_STATSUS                0x00
 #define REG_NAME_CONFIGURATION          0x01
@@ -26,6 +26,7 @@
 #define REG_NAME_TLOW_SETPOINT          0x07
 
 #define SLEEP_TIME                      1
+#define U_SLEEP_TIME                    200
 
 typedef struct {
     u_int8_t reg0;      // status

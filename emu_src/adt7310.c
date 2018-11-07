@@ -42,7 +42,7 @@ int
 adt7310_tick(u_int8_t input)
 {
 /*
- *  Manipulate mpl115a1_t accordingly.
+ *  Manipulate adt7310_t accordingly.
  */
     return 0;
 }
@@ -97,7 +97,9 @@ gen_temp2(adt7310_t *handle)
 		}else{
     		fra[i] = '0';
 	    }
-		printf("i:%d , a = %f\n",i,a);
+        #ifdef DEBUGPRINTCALL
+              printf("gen_temp2 : i:%d , a = %f\n",i,a);  
+        #endif
     }
 	fraction = strtol(fra, NULL, 2);
 
@@ -180,7 +182,7 @@ adt7310(adt7310_t *handle, u_int8_t input, int cs)
             // read_flagがenableの時，必ずしも下のread関数が実行されない（configuration Byteが送られてこない）事があるはず
             if(read(cs, &in, 1) > 0){
                 #ifdef PRINT_SOCK_COMM
-                    printf("read : %02hhx\n", in);
+                    printf("read  : %02hhx\n", in);
                 #endif
                 // change resolution.
                 if((in & 0x80) == 0x80)  handle->reg.reg1 |= 0x80;
@@ -324,6 +326,9 @@ main(int argc, char *argv[])
             exit(EXIT_FAILURE);
         }
     } else if(argc == 2) {
+        #ifdef DEBUGPRINTCALL
+            printf("Call get_server_socket.\n");
+        #endif
         if((s = get_server_socket(argv[1])) == -1) {
             exit(EXIT_FAILURE);
         }
@@ -332,16 +337,16 @@ main(int argc, char *argv[])
         exit(EXIT_FAILURE);
     }
     if((handle = adt7310_init()) == NULL) {
-        fprintf(stderr, "failed to initiallize mpl115a1 instance\n");
+        fprintf(stderr, "failed to initiallize adt7310 instance\n");
         exit(EXIT_FAILURE);
     }
 
-    #ifdef DEBUGPRINT
+    #ifdef DEBUGPRINTCALL
             printf("Call main func.\n");
     #endif
 
     for(;;) {
-        #ifdef DEBUGPRINT
+        #ifdef DEBUGPRINTCALL
             printf("Call main for 1.\n");
         #endif
         if((cs = accept(s, NULL, NULL)) == -1) {
@@ -350,13 +355,13 @@ main(int argc, char *argv[])
         }
         fprintf(stderr, "connection established\n");
         for(;;) {
-            #ifdef DEBUGPRINT
+            #ifdef DEBUGPRINTCALL
                 printf("Call main for 2.\n");
             #endif
             // input
             if(read(cs, &in, 1) > 0){
                 #ifdef PRINT_SOCK_COMM
-                    printf("read : %02hhx\n", in);
+                    printf("read  : %02hhx\n", in);
                 #endif
                 adt7310(handle, in, cs);
             }
@@ -383,7 +388,8 @@ main(int argc, char *argv[])
             }else if(mode == 0x60){
                 // shutdown mode.
             }
-            sleep(SLEEP_TIME);
+            // sleep(SLEEP_TIME);
+            usleep(U_SLEEP_TIME);
         }
         close(cs);
     }
