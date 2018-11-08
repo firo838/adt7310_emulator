@@ -1,8 +1,18 @@
 /*
-* ADT3710 emulator.
-* Create by rosev.
-* Nov. 2. 2018.
+* ADT7310 emulator.
+*
+* MIT Lisence
+*
+* Copyright <2018> < rosev : https://rosev838.github.io >
+*
+* Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+*
+* The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+* 
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+*
 */
+
 #include "adt7310.h"
 
 adt7310_t *
@@ -18,12 +28,11 @@ adt7310_init(void)
 /*
  *  Initialize adt7310_t accordingly
  */
-    handle->reg.reg0 = 0x80;        // default 0x80 Resolution is 13bit, Mode is continuous read.
-    handle->reg.reg1 = 0x00;        // default 0x00
+    handle->reg.reg0    = 0x80;     // default 0x80 Resolution is 13bit, Mode is continuous read.
+    handle->reg.reg1    = 0x00;     // default 0x00
     handle->reg.reg2[0] = 0x00;     // default 0x0000
-    handle->reg.reg2[1] = 0x00;
-    handle->reg.reg3[0] = 0x00;     // default 0x00C0
-    handle->reg.reg3[1] = 0xC0;
+    handle->reg.reg2[1] = 0x00;     
+    handle->reg.reg3    = 0xC0;     // default 0xC0
     handle->reg.reg4[0] = 0x49;     // default 0x4980
     handle->reg.reg4[1] = 0x80;
     handle->reg.reg5[0] = 0x00;     // default 0x0005
@@ -45,16 +54,6 @@ adt7310_tick(u_int8_t input)
  *  Manipulate adt7310_t accordingly.
  */
     return 0;
-}
-
-void
-get_temp(adt7310_t *handle)
-{
-    /*
-     *  Returning Temperature Value.
-     */
-    handle->reg.reg2[0] = 0x0D;
-    handle->reg.reg2[1] = 0xC6;
 }
 
 u_int16_t
@@ -135,7 +134,8 @@ set_temp(adt7310_t *handle)
     /*
      *  Returning Temperature Value.
      */
-    u_int16_t temp = gen_temp2(handle);
+    // u_int16_t temp = gen_temp2(handle);
+    u_int16_t temp = gen_temp();
 
     handle->reg.reg2[0] = (u_int8_t)(temp >> 8);
     handle->reg.reg2[1] = (u_int8_t)(temp & 0xff);
@@ -158,6 +158,7 @@ adt7310(adt7310_t *handle, u_int8_t input, int cs)
     }else{
         rw_flag = 0;
     }
+
     // check continuous mode.
     // continuous mode is 1.
     int cnt_flag = -1;
@@ -166,15 +167,17 @@ adt7310(adt7310_t *handle, u_int8_t input, int cs)
     }else{
         cnt_flag = 0;
     }
+
     // check target reg.
     u_int8_t tgt_reg = (input & 0x38) >> 3;
+
     switch(tgt_reg){
         case REG_NAME_STATSUS:
             // write status register.
             buffer[0] = handle->reg.reg0;
             write(cs, &buffer, 1);
             #ifdef PRINT_SOCK_COMM
-                printf("write : %02hhx\n", buffer[0]);
+                printf("write : %02hhx (status register)\n", buffer[0]);
             #endif
 
             break;
@@ -182,7 +185,7 @@ adt7310(adt7310_t *handle, u_int8_t input, int cs)
             // read_flagがenableの時，必ずしも下のread関数が実行されない（configuration Byteが送られてこない）事があるはず
             if(read(cs, &in, 1) > 0){
                 #ifdef PRINT_SOCK_COMM
-                    printf("read  : %02hhx\n", in);
+                    printf("read  : %02hhx (Configuration : mode set)\n", in);
                 #endif
                 // change resolution.
                 if((in & 0x80) == 0x80)  handle->reg.reg1 |= 0x80;
@@ -191,13 +194,13 @@ adt7310(adt7310_t *handle, u_int8_t input, int cs)
                 // change mode.
                 if((in & 0x60) == 0x00)  handle->reg.reg1 = (handle->reg.reg1 & 0x9F) | 0x00;   // set continuous mode.
                 if((in & 0x60) == 0x20){
-                    handle->reg.reg1 = (handle->reg.reg1 & 0x9F) | 0x20;   // set one shot mode.
+                    handle->reg.reg1 = (handle->reg.reg1 & 0x9F) | 0x20;   // set one-shot mode.
                     set_temp(handle);
                     handle->reg.reg0 &= 0x7f;
                     buffer[0] = handle->reg.reg1;
                     if(write(cs, &buffer, 1) > 0){
                         #ifdef PRINT_SOCK_COMM
-                            printf("write : %02hhx\n", buffer[0]);
+                            printf("write : %02hhx (Configuration : write config)\n", buffer[0]);
                         #endif
                         handle->reg.reg0 |= 0x80;
                     }
@@ -216,21 +219,20 @@ adt7310(adt7310_t *handle, u_int8_t input, int cs)
                 buffer[i] = handle->reg.reg2[i];
                 write(cs, &buffer[i], 1);
                 #ifdef PRINT_SOCK_COMM
-                    printf("write : %02hhx\n", buffer[i]);
+                    printf("write : %02hhx (configuration register and set value)\n", buffer[i]);
                 #endif
             }
+            handle->reg.reg0 |= 0x80;
 
             break;
         case REG_NAME_ID:
             //  return id.
 
-            for(i = 0; i < 2; i++){
-                buffer[i] = handle->reg.reg3[i];
-                write(cs, &buffer[i], 1);
-                #ifdef PRINT_SOCK_COMM
-                    printf("write : %02hhx\n", buffer[i]);
-                #endif
-            }
+            buffer[0] = handle->reg.reg3;
+            write(cs, &buffer[0], 1);
+            #ifdef PRINT_SOCK_COMM
+                printf("write : %02hhx\n", buffer[0]);
+            #endif
             
             break;
         case REG_NAME_TCRIT_SETPOINT:
@@ -240,7 +242,7 @@ adt7310(adt7310_t *handle, u_int8_t input, int cs)
                 buffer[i] = handle->reg.reg4[i];
                 write(cs, &buffer[i], 1);
                 #ifdef PRINT_SOCK_COMM
-                    printf("write : %02hhx\n", buffer[i]);
+                    printf("write : %02hhx (Tcrit Setpoint)\n", buffer[i]);
                 #endif
             }
             
@@ -264,7 +266,7 @@ adt7310(adt7310_t *handle, u_int8_t input, int cs)
                 buffer[i] = handle->reg.reg6[i];
                 write(cs, &buffer[i], 1);
                 #ifdef PRINT_SOCK_COMM
-                    printf("write : %02hhx\n", buffer[i]);
+                    printf("write : %02hhx (Thigh Setpoint)\n", buffer[i]);
                 #endif
             }
             
@@ -276,12 +278,16 @@ adt7310(adt7310_t *handle, u_int8_t input, int cs)
                 buffer[i] = handle->reg.reg7[i];
                 write(cs, &buffer[i], 1);
                 #ifdef PRINT_SOCK_COMM
-                    printf("write : %02hhx\n", buffer[i]);
+                    printf("write : %02hhx (Tlow Setpoint)\n", buffer[i]);
                 #endif
             }
             
             break;
         default:
+            // write 温度データを記述する予定
+                #ifdef PRINT_SOCK_COMM
+                    printf("ADT7310 Through\n");
+                #endif
             break;
     }
 
@@ -317,9 +323,14 @@ get_server_socket(const char *const path)
 int
 main(int argc, char *argv[])
 {
-    int s, cs, l, i, out_len, buffer_ptr = 0;
+    int s, cs, l, i;
     u_int8_t in, *out, buffer[BUFSIZ], mode;
     adt7310_t *handle;
+
+    struct pollfd fds;
+    int ret = -1;
+
+    int counter;
 
     if(argc == 1) {
         if((s = get_server_socket("/tmp/spi")) == -1) {
@@ -347,49 +358,74 @@ main(int argc, char *argv[])
 
     for(;;) {
         #ifdef DEBUGPRINTCALL
-            printf("Call main for 1.\n");
+            printf("Call main : for : 1.\n");
         #endif
         if((cs = accept(s, NULL, NULL)) == -1) {
             perror("accept");
             exit(EXIT_FAILURE);
         }
+
+        fds.fd = cs;
+        fds.events = POLLIN;
+
         fprintf(stderr, "connection established\n");
         for(;;) {
             #ifdef DEBUGPRINTCALL
-                printf("Call main for 2.\n");
+                printf("Call main : for : 2.\n");
             #endif
-            // input
-            if(read(cs, &in, 1) > 0){
+
+            // ret = poll(&fds, 1, 0);
+            poll(&fds, 1, 0);
+
+            if(fds.revents > 0) {
+                // input
+                if(read(cs, &in, 1) > 0){
                 #ifdef PRINT_SOCK_COMM
                     printf("read  : %02hhx\n", in);
                 #endif
                 adt7310(handle, in, cs);
+                }
             }
 
+            /*
+             * The ADT 7310 requires 240 microseconds to repel the obtained temperature data to digital data.
+             */
+            set_temp(handle);
+            usleep(CONVERSION_TIME);
+
+            if(counter++ == 100000){
+                // 適度にゆっくりするやつ
+                // あとで消す
+                counter = 0;
+            }else if(counter == 99999){
             // output
             // chech mode
             mode = handle->reg.reg1 & 0x60;
             if((mode == 0x00) && ((handle->reg.reg0 & 0x80) == 0x00)){
                 // continuous mode.
-                set_temp(handle);
-
-                for(i = 0; i < 2; i++){
-                    buffer[i] = handle->reg.reg2[i];
-                    write(cs, &buffer[i], 1);
-                    #ifdef PRINT_SOCK_COMM
-                        printf("write : %02hhx\n", buffer[i]);
-                    #endif
-                    handle->reg.reg0 |= 0x80;
-                }
+                // 更新間隔を考えなければずっとWriteしてしまい，FDのバッファを埋めてしまう
+                // for(i = 0; i < 2; i++){
+                //    buffer[i] = handle->reg.reg2[i];
+                //     write(cs, &buffer[i], 1);
+                //     #ifdef PRINT_SOCK_COMM
+                //         printf("write : %02hhx (buffer[%d] temperature)\n", buffer[i], i);
+                //     #endif
+                //     handle->reg.reg0 |= 0x80;
+                // }
             }else if((mode == 0x20) && ((handle->reg.reg0 & 0x80) == 0x80)){
                 // one shot mode.
+                // This process is skipped.
+                // One shot mode is processing at received the command byte in adt7310 function.
             }else if(mode == 0x40){
                 // sps mode.
+                // 1秒ごとに測定してセットする
+                // This process is skipped.
             }else if(mode == 0x60){
                 // shutdown mode.
+                // This process is skipped.
             }
-            // sleep(SLEEP_TIME);
-            usleep(U_SLEEP_TIME);
+            }
+            fprintf(stderr, "connection closed\n");
         }
         close(cs);
     }
