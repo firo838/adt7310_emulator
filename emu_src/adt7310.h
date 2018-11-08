@@ -47,11 +47,6 @@ typedef struct {
     u_int8_t reg5[2];   // THYST Setpoint
     u_int8_t reg6[2];   // THIGH Setpoint
     u_int8_t reg7[2];   // TLOW Setpoint
-} adt7310_reg;
-
-typedef struct {
-    adt7310_reg reg;
-    int read_flag;
 } adt7310_t;
 
 adt7310_t *adt7310_init(void);
