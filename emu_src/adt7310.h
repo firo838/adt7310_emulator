@@ -23,7 +23,7 @@
 #include <sys/poll.h>  
 
 // define debug codes.
-#define PRINT_SOCK_COMM
+#define PRINT_SPI_COMM
 // #define DEBUGPRINTCALL
 
 #define REG_NAME_STATSUS                0x00
