@@ -148,6 +148,7 @@ adt7310(adt7310_t *handle, u_int8_t input, int cs)
     u_int8_t in = 0x00;
     u_int8_t buffer[2];
     int rw_flag = -1;
+    int cnt_flag = -1;
     int i;
 
     // read is 1, write is 0.
@@ -162,7 +163,6 @@ adt7310(adt7310_t *handle, u_int8_t input, int cs)
         handle->reg1 |= 0x04;
     }
     // continuous mode is 1.
-    int cnt_flag = -1;
     if((handle->reg1 & 0x60) == 0x00){
         cnt_flag = 1;
     }else{
@@ -175,8 +175,9 @@ adt7310(adt7310_t *handle, u_int8_t input, int cs)
     switch(tgt_reg){
         case REG_NAME_STATSUS:
             // write status register.
-            if(cnt_flag == 1 && rw_flag != 1){
-                // continuous mode is true and write mode is true.
+            if(cnt_flag == 1 && rw_flag == 0){
+                // continuous mode is enabled and write mode is enabled
+                // 0x00 default processing
                 set_temp(handle);
                 for(i = 0; i < 2; i++){
                     buffer[i] = handle->reg2[i];
@@ -186,6 +187,9 @@ adt7310(adt7310_t *handle, u_int8_t input, int cs)
                     #endif
                 }
                 handle->reg0 |= 0x80;
+            }else if(rw_flag == 1){
+                // read mode is enabled
+                // statusレジスタの書き換え（書き換えは起こりうるのかチェックする必要がある）
             }else{
                 // another condition
                 // write status
@@ -199,7 +203,12 @@ adt7310(adt7310_t *handle, u_int8_t input, int cs)
             break;
         case REG_NAME_CONFIGURATION:
             // read_flagがenableの時，必ずしも下のread関数が実行されない（configuration Byteが送られてこない）事があるはず
-            if(read(cs, &in, 1) > 0){
+            // configuration register
+            if(rw_flag == 0){
+                // write mode is enabled
+                // change config
+                // read config command byte
+                if(read(cs, &in, 1) > 0){
                 #ifdef PRINT_SOCK_COMM
                     printf("read  : %02hhx (Configuration : mode set)\n", in);
                 #endif
@@ -223,13 +232,23 @@ adt7310(adt7310_t *handle, u_int8_t input, int cs)
                 }  
                 if((in & 0x60) == 0x40)  handle->reg1 = (handle->reg1 & 0x9F) | 0x40;   // set sps mode.
                 if((in & 0x60) == 0x60)  handle->reg1 = (handle->reg1 & 0x9F) | 0x60;   // set shutdown mode.
+                }
+            }else{
+                // read mode is enabled
+                // write configuration register
+                buffer[0] = handle->reg1;
+                write(cs, &buffer, 1);
+                #ifdef PRINT_SOCK_COMM
+                    printf("write : %02hhx (configuration register)\n", buffer[0]);
+                #endif
             }
 
             break;
         case REG_NAME_TEMPERATIRE_VALUE:
             // write configuration register and set value.
+            // rw_flagはどちらでもよい
 
-            set_temp(handle);
+            set_temp(handle);            
 
             for(i = 0; i < 2; i++){
                 buffer[i] = handle->reg2[i];
@@ -243,6 +262,7 @@ adt7310(adt7310_t *handle, u_int8_t input, int cs)
             break;
         case REG_NAME_ID:
             //  return id.
+            // rw_flagはどちらでもよい
 
             buffer[0] = handle->reg3;
             write(cs, &buffer[0], 1);
@@ -254,48 +274,92 @@ adt7310(adt7310_t *handle, u_int8_t input, int cs)
         case REG_NAME_TCRIT_SETPOINT:
             // return Tcrit Setpoint.
 
-            for(i = 0; i < 2; i++){
-                buffer[i] = handle->reg4[i];
-                write(cs, &buffer[i], 1);
-                #ifdef PRINT_SOCK_COMM
-                    printf("write : %02hhx (Tcrit Setpoint)\n", buffer[i]);
-                #endif
+            if(rw_flag == 0){
+                // write mode is enabled
+                for(i = 0; i < 2; i++){
+                    read(cs, &buffer[i], 1);
+                    handle->reg4[i] = buffer[i];
+                    #ifdef PRINT_SOCK_COMM
+                        printf("read  : %02hhx (Tcrit Setpoint)\n", buffer[i]);
+                    #endif
+                }
+            }else{
+                for(i = 0; i < 2; i++){
+                    buffer[i] = handle->reg4[i];
+                    write(cs, &buffer[i], 1);
+                    #ifdef PRINT_SOCK_COMM
+                        printf("write : %02hhx (Tcrit Setpoint)\n", buffer[i]);
+                    #endif
+                }
             }
             
             break;
         case REG_NAME_THYST_SETPOINT:
             // return Thyst Setpoint.
 
-            for(i = 0; i < 2; i++){
-                buffer[i] = handle->reg5[i];
-                write(cs, &buffer[i], 1);
-                #ifdef PRINT_SOCK_COMM
-                    printf("write : %02hhx\n", buffer[i]);
-                #endif
+            if(rw_flag == 0){
+                // write mode is enabled
+                for(i = 0; i < 2; i++){
+                    read(cs, &buffer[i], 1);
+                    handle->reg5[i] = buffer[i];
+                    #ifdef PRINT_SOCK_COMM
+                        printf("read  : %02hhx (Thyst Setpoint)\n", buffer[i]);
+                    #endif
+                }
+            }else{
+                for(i = 0; i < 2; i++){
+                    buffer[i] = handle->reg5[i];
+                    write(cs, &buffer[i], 1);
+                    #ifdef PRINT_SOCK_COMM
+                        printf("write : %02hhx (Thyst Setpoint)\n", buffer[i]);
+                    #endif
+                }
             }
             
             break;
         case REG_NAME_THIGH_SETPOINT:
             // return Thigh Setpoint.
 
-            for(i = 0; i < 2; i++){
-                buffer[i] = handle->reg6[i];
-                write(cs, &buffer[i], 1);
-                #ifdef PRINT_SOCK_COMM
-                    printf("write : %02hhx (Thigh Setpoint)\n", buffer[i]);
-                #endif
+            if(rw_flag == 0){
+                // write mode is enabled
+                for(i = 0; i < 2; i++){
+                    read(cs, &buffer[i], 1);
+                    handle->reg6[i] = buffer[i];
+                    #ifdef PRINT_SOCK_COMM
+                        printf("read  : %02hhx (Thigh Setpoint)\n", buffer[i]);
+                    #endif
+                }
+            }else{
+                for(i = 0; i < 2; i++){
+                    buffer[i] = handle->reg6[i];
+                    write(cs, &buffer[i], 1);
+                    #ifdef PRINT_SOCK_COMM
+                        printf("write : %02hhx (Thigh Setpoint)\n", buffer[i]);
+                    #endif
+                }
             }
             
             break;
         case REG_NAME_TLOW_SETPOINT:
             // return Tlow Setpoint.
 
-            for(i = 0; i < 2; i++){
-                buffer[i] = handle->reg7[i];
-                write(cs, &buffer[i], 1);
-                #ifdef PRINT_SOCK_COMM
-                    printf("write : %02hhx (Tlow Setpoint)\n", buffer[i]);
-                #endif
+            if(rw_flag == 0){
+                // write mode is enabled
+                for(i = 0; i < 2; i++){
+                    read(cs, &buffer[i], 1);
+                    handle->reg7[i] = buffer[i];
+                    #ifdef PRINT_SOCK_COMM
+                        printf("read  : %02hhx (Tlow Setpoint)\n", buffer[i]);
+                    #endif
+                }
+            }else{
+                for(i = 0; i < 2; i++){
+                    buffer[i] = handle->reg7[i];
+                    write(cs, &buffer[i], 1);
+                    #ifdef PRINT_SOCK_COMM
+                        printf("write : %02hhx (Tlow Setpoint)\n", buffer[i]);
+                    #endif
+                }
             }
             
             break;
