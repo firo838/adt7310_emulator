@@ -345,8 +345,6 @@ main(int argc, char *argv[])
     struct pollfd fds;
     int ret = -1;
 
-    int counter;
-
     if(argc == 1) {
         if((s = get_server_socket("/tmp/spi")) == -1) {
             exit(EXIT_FAILURE);
@@ -405,11 +403,6 @@ main(int argc, char *argv[])
             // set_temp(handle);
             // usleep(CONVERSION_TIME);
 
-            if(counter++ == 100000){
-                // 適度にゆっくりするやつ
-                // あとで消す
-                counter = 0;
-            }else if(counter == 99999){
             // output
             // chech mode
             mode = handle->reg1 & 0x60;
@@ -428,7 +421,6 @@ main(int argc, char *argv[])
             }else if(mode == 0x60){
                 // shutdown mode.
                 // This process is skipped.
-            }
             }
         }
         close(cs);
