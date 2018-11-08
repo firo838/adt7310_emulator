@@ -1,7 +1,16 @@
 /*
-* ADT3710 emulator.
-* Create by rosev.
-* Nov. 2. 2018.
+* ADT7310 emulator.
+*
+* MIT Lisence
+*
+* Copyright <2018> < rosev : https://rosev838.github.io >
+*
+* Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+*
+* The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+* 
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+*
 */
 #include <sys/socket.h>
 #include <sys/types.h>
@@ -11,10 +20,11 @@
 #include <string.h>
 #include <unistd.h>
 #include <time.h>
+#include <sys/poll.h>  
 
 // define debug codes.
 #define PRINT_SOCK_COMM
-//#define DEBUGPRINTCALL
+// #define DEBUGPRINTCALL
 
 #define REG_NAME_STATSUS                0x00
 #define REG_NAME_CONFIGURATION          0x01
@@ -26,13 +36,13 @@
 #define REG_NAME_TLOW_SETPOINT          0x07
 
 #define SLEEP_TIME                      1
-#define U_SLEEP_TIME                    200
+#define CONVERSION_TIME                 240
 
 typedef struct {
     u_int8_t reg0;      // status
     u_int8_t reg1;      // Configuration
     u_int8_t reg2[2];   // Temperature value
-    u_int8_t reg3[2];   // ID
+    u_int8_t reg3;      // ID
     u_int8_t reg4[2];   // TCRIT Setopoint
     u_int8_t reg5[2];   // THYST Setpoint
     u_int8_t reg6[2];   // THIGH Setpoint
@@ -46,7 +56,6 @@ typedef struct {
 
 adt7310_t *adt7310_init(void);
 int adt7310_tick(u_int8_t input);
-void get_temp(adt7310_t *handle);
 u_int16_t gen_temp();
 u_int16_t gen_temp2(adt7310_t *handle);
 float random_temp();
