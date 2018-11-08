@@ -24,7 +24,7 @@
 
 // define debug codes.
 #define PRINT_SPI_COMM
-// #define DEBUGPRINTCALL
+// #define DEBUG_PRINT
 
 #define REG_NAME_STATSUS                0x00
 #define REG_NAME_CONFIGURATION          0x01

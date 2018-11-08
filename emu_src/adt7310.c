@@ -94,7 +94,7 @@ gen_temp2(adt7310_t *handle)
 		}else{
     		fra[i] = '0';
 	    }
-        #ifdef DEBUGPRINTCALL
+        #ifdef DEBUG_PRINT
               printf("gen_temp2 : i:%d , a = %f\n",i,a);  
         #endif
     }
@@ -202,7 +202,6 @@ adt7310(adt7310_t *handle, u_int8_t input, int cs)
 
             break;
         case REG_NAME_CONFIGURATION:
-            // read_flagがenableの時，必ずしも下のread関数が実行されない（configuration Byteが送られてこない）事があるはず
             // configuration register
             if(rw_flag == 0){
                 // write mode is enabled
@@ -246,7 +245,7 @@ adt7310(adt7310_t *handle, u_int8_t input, int cs)
             break;
         case REG_NAME_TEMPERATIRE_VALUE:
             // write temperature value.
-            // each rw_flag is ok
+            // Both rw_flag is ok
 
             set_temp(handle);            
 
@@ -262,7 +261,7 @@ adt7310(adt7310_t *handle, u_int8_t input, int cs)
             break;
         case REG_NAME_ID:
             // return id.
-            // each rw_flag is ok
+            // Both rw_flag is ok
 
             buffer[0] = handle->reg3;
             write(cs, &buffer[0], 1);
@@ -426,12 +425,12 @@ main(int argc, char *argv[])
         exit(EXIT_FAILURE);
     }
 
-    #ifdef DEBUGPRINTCALL
+    #ifdef DEBUG_PRINT
             printf("Call main func\n");
     #endif
 
     for(;;) {
-        #ifdef DEBUGPRINTCALL
+        #ifdef DEBUG_PRINT
             printf("Call main : for : 1\n");
         #endif
         if((cs = accept(s, NULL, NULL)) == -1) {
@@ -444,20 +443,15 @@ main(int argc, char *argv[])
 
         fprintf(stderr, "connection established\n");
         for(;;) {
-            #ifdef DEBUGPRINTCALL
-                printf("Call main : for : 2\n");
-            #endif
-
-            // ret = poll(&fds, 1, 0);
             poll(&fds, 1, 0);
 
             if(fds.revents > 0) {
                 // input
                 if(read(cs, &in, 1) > 0){
-                #ifdef PRINT_SPI_COMM
-                    printf("read  : %02hhx\n", in);
-                #endif
-                adt7310(handle, in, cs);
+                    #ifdef PRINT_SPI_COMM
+                        printf("read  : %02hhx\n", in);
+                    #endif
+                    adt7310(handle, in, cs);
                 }
             }
 
@@ -471,9 +465,7 @@ main(int argc, char *argv[])
             // chech mode
             mode = handle->reg1 & 0x60;
             if((mode == 0x00) && ((handle->reg0 & 0x80) == 0x00)){
-                // continuous mode.
-                set_temp(handle);
-                usleep(CONVERSION_TIME);
+                // continuous mode
             }else if((mode == 0x20) && ((handle->reg0 & 0x80) == 0x80)){
                 // one shot mode.
                 // One shot mode is processing at received the command byte in adt7310 function.
