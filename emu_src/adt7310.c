@@ -178,7 +178,6 @@ adt7310(adt7310_t *handle, u_int8_t input, int cs)
             if(cnt_flag == 1 && rw_flag == 0){
                 // continuous mode is enabled and write mode is enabled
                 // 0x00 default processing
-                set_temp(handle);
                 for(i = 0; i < 2; i++){
                     buffer[i] = handle->reg2[i];
                     write(cs, &buffer[i], 1);
@@ -219,7 +218,7 @@ adt7310(adt7310_t *handle, u_int8_t input, int cs)
                 if((in & 0x60) == 0x00)  handle->reg1 = (handle->reg1 & 0x9F) | 0x00;   // set continuous mode.
                 if((in & 0x60) == 0x20){
                     handle->reg1 = (handle->reg1 & 0x9F) | 0x20;   // set one-shot mode.
-                    set_temp(handle);
+                    // set_temp(handle);
                     handle->reg0 &= 0x7f;   // status : RDY bit change to enable
                     buffer[0] = handle->reg1;
                     if(write(cs, &buffer, 1) > 0){
@@ -443,18 +442,6 @@ main(int argc, char *argv[])
 
         fprintf(stderr, "connection established\n");
         for(;;) {
-            poll(&fds, 1, 0);
-
-            if(fds.revents > 0) {
-                // input
-                if(read(cs, &in, 1) > 0){
-                    #ifdef PRINT_SPI_COMM
-                        printf("read  : %02hhx\n", in);
-                    #endif
-                    adt7310(handle, in, cs);
-                }
-            }
-
             /*
              * The ADT 7310 requires 240 microseconds to repel the obtained temperature data to digital data.
              */
@@ -466,17 +453,34 @@ main(int argc, char *argv[])
             mode = handle->reg1 & 0x60;
             if((mode == 0x00) && ((handle->reg0 & 0x80) == 0x00)){
                 // continuous mode
+                set_temp(handle);
+                usleep(CONVERSION_TIME);
             }else if((mode == 0x20) && ((handle->reg0 & 0x80) == 0x80)){
                 // one shot mode.
                 // One shot mode is processing at received the command byte in adt7310 function.
-                // This process is skipped.
+                set_temp(handle);
+                usleep(CONVERSION_TIME);
             }else if(mode == 0x40){
                 // sps mode.
                 // 1秒ごとに測定してセットする
                 // This process is skipped.
+                set_temp(handle);
+                usleep(CONVERSION_TIME);
             }else if(mode == 0x60){
                 // shutdown mode.
                 // This process is skipped.
+            }
+
+            poll(&fds, 1, 0);
+
+            if(fds.revents > 0) {
+                // input
+                if(read(cs, &in, 1) > 0){
+                    #ifdef PRINT_SPI_COMM
+                        printf("read  : %02hhx\n", in);
+                    #endif
+                    adt7310(handle, in, cs);
+                }
             }
         }
         close(cs);
