@@ -463,11 +463,17 @@ main(int argc, char *argv[])
             if((mode == 0x00) && ((handle->reg0 & 0x80) == 0x00) && sd_flag){
                 // continuous mode
                 set_temp(handle);
+                #ifdef DEBUG_PRINT
+                    printf("Mode : Continuous : handle->reg1=%x\n", handle->reg1);  
+                #endif
                 usleep(CONVERSION_TIME);
             }else if((mode == 0x20) && ((handle->reg0 & 0x80) == 0x80) && sd_flag){
                 // one shot mode.
                 // One shot mode is processing at received the command byte in adt7310 function.
                 set_temp(handle);
+                #ifdef DEBUG_PRINT
+                    printf("Mode : One-Shot : handle->reg1=%x\n", handle->reg1);  
+                #endif
                 usleep(CONVERSION_TIME);
             }else if(mode == 0x40 && sd_flag){
                 // sps mode.
@@ -475,12 +481,18 @@ main(int argc, char *argv[])
                 if(counter == 100000000){
                     // Measure every 1 second and set the value.
                     set_temp(handle);
+                    #ifdef DEBUG_PRINT
+                        printf("Mode : 1 SPS : handle->reg1=%x\n", handle->reg1);  
+                    #endif
                     usleep(CONVERSION_TIME);
                     counter = 0;
                 }
             }else if(mode == 0x60){
                 // shutdown mode.
                 // This process is skipped.
+                #ifdef DEBUG_PRINT
+                    printf("Mode : Shutdown : handle->reg1=%x\n", handle->reg1);  
+                #endif
             }
 
             counter++;
