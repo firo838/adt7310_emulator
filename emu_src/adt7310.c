@@ -408,6 +408,7 @@ main(int argc, char *argv[])
     int ret = -1;
 
     unsigned int counter = 0;
+    int sd_flag = -1;
 
     if(argc == 1) {
         if((s = get_server_socket("/tmp/spi")) == -1) {
@@ -450,19 +451,25 @@ main(int argc, char *argv[])
             // set_temp(handle);
             // usleep(CONVERSION_TIME);
 
+            // check shutdown mode
+            // Shutdown the temperature measurement and conversion circuit.
+            // Register read / write is possible even during shutdown.
+            // sd_flag == 0 is shutdown mode, 1 is other mode.
+            sd_flag = (handle->reg1 & 0x60) == 0x60 ? 0 : 1;
+
             // output
             // chech mode
             mode = handle->reg1 & 0x60;
-            if((mode == 0x00) && ((handle->reg0 & 0x80) == 0x00)){
+            if((mode == 0x00) && ((handle->reg0 & 0x80) == 0x00) && sd_flag){
                 // continuous mode
                 set_temp(handle);
                 usleep(CONVERSION_TIME);
-            }else if((mode == 0x20) && ((handle->reg0 & 0x80) == 0x80)){
+            }else if((mode == 0x20) && ((handle->reg0 & 0x80) == 0x80) && sd_flag){
                 // one shot mode.
                 // One shot mode is processing at received the command byte in adt7310 function.
                 set_temp(handle);
                 usleep(CONVERSION_TIME);
-            }else if(mode == 0x40){
+            }else if(mode == 0x40 && sd_flag){
                 // sps mode.
                 // This process is skipped.
                 if(counter == 100000000){
@@ -471,7 +478,6 @@ main(int argc, char *argv[])
                     usleep(CONVERSION_TIME);
                     counter = 0;
                 }
-                
             }else if(mode == 0x60){
                 // shutdown mode.
                 // This process is skipped.
