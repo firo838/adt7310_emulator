@@ -96,7 +96,7 @@ gen_temp2(adt7310_t *handle)
     		fra[i] = '0';
 	    }
         #ifdef DEBUG_PRINT
-              printf("gen_temp2 : i:%d , a = %f\n",i,a);  
+            printf("gen_temp2 : i:%d , a = %f\n",i,a);  
         #endif
     }
 	fraction = strtol(fra, NULL, 2); // convert str to long
@@ -429,14 +429,7 @@ main(int argc, char *argv[])
         exit(EXIT_FAILURE);
     }
 
-    #ifdef DEBUG_PRINT
-        printf("Call main func\n");
-    #endif
-
     for(;;) {
-        #ifdef DEBUG_PRINT
-            printf("Call main : for : 1\n");
-        #endif
         if((cs = accept(s, NULL, NULL)) == -1) {
             perror("accept");
             exit(EXIT_FAILURE);
@@ -451,10 +444,12 @@ main(int argc, char *argv[])
              * The ADT 7310 requires 240 microseconds to repel the obtained temperature data to digital data.
              */
 
-            // check shutdown mode
-            // Shutdown the temperature measurement and conversion circuit.
-            // Register read / write is possible even during shutdown.
-            // sd_flag == 0 is shutdown mode, 1 is other mode.
+            /* check shutdown mode
+             * Shutdown the temperature measurement and conversion circuit.
+             * Register read / write is possible even during shutdown.
+             * sd_flag == 0 is shutdown mode, 1 is other mode.
+             */
+
             sd_flag = (handle->reg1 & 0x60) == 0x60 ? 0 : 1;
 
             // output
@@ -468,18 +463,19 @@ main(int argc, char *argv[])
                 #endif
                 usleep(CONVERSION_TIME);
             }else if((mode == 0x20) && ((handle->reg0 & 0x80) == 0x80) && sd_flag){
-                // one shot mode.
-                // One shot mode is processing at received the command byte in adt7310 function.
+                // One-shot mode.
+                // One-shot mode is processing at received the command byte in adt7310 function.
                 set_temp(handle);
                 #ifdef DEBUG_PRINT
                     printf("Mode : One-Shot : handle->reg1=%x\n", handle->reg1);  
                 #endif
                 usleep(CONVERSION_TIME);
             }else if(mode == 0x40 && sd_flag){
-                // sps mode.
+                // 1 SPS mode.
                 // This process is skipped.
                 if(counter == 100000000){
                     // Measure every 1 second and set the value.
+                    // This is fake counter
                     set_temp(handle);
                     #ifdef DEBUG_PRINT
                         printf("Mode : 1 SPS : handle->reg1=%x\n", handle->reg1);  
@@ -500,7 +496,7 @@ main(int argc, char *argv[])
             poll(&fds, 1, 0);
 
             if(fds.revents > 0) {
-                // input
+                // input (read from spi)
                 if(read(cs, &in, 1) > 0){
                     #ifdef PRINT_SPI_COMM
                         printf("read  : %02hhx\n", in);
