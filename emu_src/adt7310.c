@@ -71,6 +71,7 @@ gen_temp2(adt7310_t *handle)
     int integer, i, fraction;
     char fra[8];
     float a, t = random_temp();
+    printf("t  = %f\n",t);
 
     // res_flag : 0 is 13 bit mode, 1 is 16 bit mode.
     int res_flag = -1;
@@ -120,7 +121,6 @@ gen_temp2(adt7310_t *handle)
 float
 random_temp(){
     float a, t;
-    srand((unsigned int)time(NULL));
 	t = (rand()%10000)/1000 + 15.0;
 
     return t;
@@ -132,8 +132,8 @@ set_temp(adt7310_t *handle)
     /*
      *  Returning Temperature Value.
      */
-    // u_int16_t temp = gen_temp2(handle);
-    u_int16_t temp = gen_temp();
+    // u_int16_t temp = gen_temp();
+    u_int16_t temp = gen_temp2(handle);
 
     handle->reg2[0] = (u_int8_t)(temp >> 8);
     handle->reg2[1] = (u_int8_t)(temp & 0xff);
@@ -410,6 +410,8 @@ main(int argc, char *argv[])
     unsigned int counter = 0;
     int sd_flag = -1;
 
+    srand(SEED);
+
     if(argc == 1) {
         if((s = get_server_socket("/tmp/spi")) == -1) {
             exit(EXIT_FAILURE);
@@ -428,7 +430,7 @@ main(int argc, char *argv[])
     }
 
     #ifdef DEBUG_PRINT
-            printf("Call main func\n");
+        printf("Call main func\n");
     #endif
 
     for(;;) {
