@@ -407,6 +407,8 @@ main(int argc, char *argv[])
     struct pollfd fds;
     int ret = -1;
 
+    unsigned int counter = 0;
+
     if(argc == 1) {
         if((s = get_server_socket("/tmp/spi")) == -1) {
             exit(EXIT_FAILURE);
@@ -462,14 +464,20 @@ main(int argc, char *argv[])
                 usleep(CONVERSION_TIME);
             }else if(mode == 0x40){
                 // sps mode.
-                // 1秒ごとに測定してセットする
                 // This process is skipped.
-                set_temp(handle);
-                usleep(CONVERSION_TIME);
+                if(counter == 100000000){
+                    // Measure every 1 second and set the value.
+                    set_temp(handle);
+                    usleep(CONVERSION_TIME);
+                    counter = 0;
+                }
+                
             }else if(mode == 0x60){
                 // shutdown mode.
                 // This process is skipped.
             }
+
+            counter++;
 
             poll(&fds, 1, 0);
 
