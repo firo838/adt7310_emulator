@@ -448,8 +448,6 @@ main(int argc, char *argv[])
             /*
              * The ADT 7310 requires 240 microseconds to repel the obtained temperature data to digital data.
              */
-            // set_temp(handle);
-            // usleep(CONVERSION_TIME);
 
             // check shutdown mode
             // Shutdown the temperature measurement and conversion circuit.
