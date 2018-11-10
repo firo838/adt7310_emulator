@@ -71,7 +71,10 @@ gen_temp2(adt7310_t *handle)
     int integer, i, fraction;
     char fra[8];
     float a, t = random_temp();
-    printf("t  = %f\n",t);
+
+    #ifdef DEBUG_PRINT
+        printf("random_temp : t = %f\n",t); // Checking random_temp() behavior is correct
+    #endif
 
     // res_flag : 0 is 13 bit mode, 1 is 16 bit mode.
     int res_flag = -1;
@@ -182,7 +185,7 @@ adt7310(adt7310_t *handle, u_int8_t input, int cs)
                     buffer[i] = handle->reg2[i];
                     write(cs, &buffer[i], 1);
                     #ifdef PRINT_SPI_COMM
-                        printf("write : %02hhx (Temperature value)\n", buffer[i]);
+                        printf("write : %02hhx (Temperature value : read (deafult 0x00))\n", buffer[i]);
                     #endif
                 }
                 handle->reg0 |= 0x80;   // status : RDY bit change to disable
@@ -195,7 +198,7 @@ adt7310(adt7310_t *handle, u_int8_t input, int cs)
                 buffer[0] = handle->reg0;
                 write(cs, &buffer, 1);
                 #ifdef PRINT_SPI_COMM
-                    printf("write : %02hhx (status register)\n", buffer[0]);
+                    printf("write : %02hhx (status register : read)\n", buffer[0]);
                 #endif
             }
 
@@ -208,7 +211,7 @@ adt7310(adt7310_t *handle, u_int8_t input, int cs)
                 // read config command byte
                 if(read(cs, &in, 1) > 0){
                 #ifdef PRINT_SPI_COMM
-                    printf("read  : %02hhx (Configuration : mode set)\n", in);
+                    printf("read  : %02hhx (configuration register : set)\n", in);
                 #endif
                 // change resolution.
                 if((in & 0x80) == 0x80)  handle->reg1 |= 0x80;
@@ -223,7 +226,7 @@ adt7310(adt7310_t *handle, u_int8_t input, int cs)
                     buffer[0] = handle->reg1;
                     if(write(cs, &buffer, 1) > 0){
                         #ifdef PRINT_SPI_COMM
-                            printf("write : %02hhx (Configuration : write config)\n", buffer[0]);
+                            printf("write : %02hhx (configuration register : set)\n", buffer[0]);
                         #endif
                         handle->reg0 |= 0x80;   // status : RDY bit change to disable
                     }
@@ -237,7 +240,7 @@ adt7310(adt7310_t *handle, u_int8_t input, int cs)
                 buffer[0] = handle->reg1;
                 write(cs, &buffer, 1);
                 #ifdef PRINT_SPI_COMM
-                    printf("write : %02hhx (configuration register)\n", buffer[0]);
+                    printf("write : %02hhx (configuration register : read)\n", buffer[0]);
                 #endif
             }
 
@@ -252,7 +255,7 @@ adt7310(adt7310_t *handle, u_int8_t input, int cs)
                 buffer[i] = handle->reg2[i];
                 write(cs, &buffer[i], 1);
                 #ifdef PRINT_SPI_COMM
-                    printf("write : %02hhx (temperature register)\n", buffer[i]);
+                    printf("write : %02hhx (temperature register : read)\n", buffer[i]);
                 #endif
             }
             handle->reg0 |= 0x80;   // status : RDY bit change to enable
@@ -278,7 +281,7 @@ adt7310(adt7310_t *handle, u_int8_t input, int cs)
                     read(cs, &buffer[i], 1);
                     handle->reg4[i] = buffer[i];
                     #ifdef PRINT_SPI_COMM
-                        printf("read  : %02hhx (Tcrit Setpoint)\n", buffer[i]);
+                        printf("read  : %02hhx (Tcrit Setpoint : set)\n", buffer[i]);
                     #endif
                 }
             }else{
@@ -286,7 +289,7 @@ adt7310(adt7310_t *handle, u_int8_t input, int cs)
                     buffer[i] = handle->reg4[i];
                     write(cs, &buffer[i], 1);
                     #ifdef PRINT_SPI_COMM
-                        printf("write : %02hhx (Tcrit Setpoint r)\n", buffer[i]);
+                        printf("write : %02hhx (Tcrit Setpoint : read)\n", buffer[i]);
                     #endif
                 }
             }
@@ -301,7 +304,7 @@ adt7310(adt7310_t *handle, u_int8_t input, int cs)
                     read(cs, &buffer[i], 1);
                     handle->reg5[i] = buffer[i];
                     #ifdef PRINT_SPI_COMM
-                        printf("read  : %02hhx (Thyst Setpoint)\n", buffer[i]);
+                        printf("read  : %02hhx (Thyst Setpoint : set)\n", buffer[i]);
                     #endif
                 }
             }else{
@@ -309,7 +312,7 @@ adt7310(adt7310_t *handle, u_int8_t input, int cs)
                     buffer[i] = handle->reg5[i];
                     write(cs, &buffer[i], 1);
                     #ifdef PRINT_SPI_COMM
-                        printf("write : %02hhx (Thyst Setpoint)\n", buffer[i]);
+                        printf("write : %02hhx (Thyst Setpoint : read)\n", buffer[i]);
                     #endif
                 }
             }
@@ -324,7 +327,7 @@ adt7310(adt7310_t *handle, u_int8_t input, int cs)
                     read(cs, &buffer[i], 1);
                     handle->reg6[i] = buffer[i];
                     #ifdef PRINT_SPI_COMM
-                        printf("read  : %02hhx (Thigh Setpoint)\n", buffer[i]);
+                        printf("read  : %02hhx (Thigh Setpoint : set)\n", buffer[i]);
                     #endif
                 }
             }else{
@@ -332,7 +335,7 @@ adt7310(adt7310_t *handle, u_int8_t input, int cs)
                     buffer[i] = handle->reg6[i];
                     write(cs, &buffer[i], 1);
                     #ifdef PRINT_SPI_COMM
-                        printf("write : %02hhx (Thigh Setpoint)\n", buffer[i]);
+                        printf("write : %02hhx (Thigh Setpoint : read)\n", buffer[i]);
                     #endif
                 }
             }
@@ -347,7 +350,7 @@ adt7310(adt7310_t *handle, u_int8_t input, int cs)
                     read(cs, &buffer[i], 1);
                     handle->reg7[i] = buffer[i];
                     #ifdef PRINT_SPI_COMM
-                        printf("read  : %02hhx (Tlow Setpoint)\n", buffer[i]);
+                        printf("read  : %02hhx (Tlow Setpoint :set)\n", buffer[i]);
                     #endif
                 }
             }else{
@@ -355,7 +358,7 @@ adt7310(adt7310_t *handle, u_int8_t input, int cs)
                     buffer[i] = handle->reg7[i];
                     write(cs, &buffer[i], 1);
                     #ifdef PRINT_SPI_COMM
-                        printf("write : %02hhx (Tlow Setpoint)\n", buffer[i]);
+                        printf("write : %02hhx (Tlow Setpoint : read)\n", buffer[i]);
                     #endif
                 }
             }

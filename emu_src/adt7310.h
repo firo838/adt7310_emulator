@@ -22,7 +22,6 @@
 #include <time.h>
 #include <sys/poll.h>  
 
-// define debug codes.
 #define PRINT_SPI_COMM
 // #define DEBUG_PRINT
 
