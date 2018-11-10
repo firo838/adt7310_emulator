@@ -56,9 +56,6 @@ Use it according to your needs.
 - Behavior when 0x00 is transmitted by SPI communication. Difference from register 0x00 accessed can not be detected.By default, it processes it as a sequence of command bytes to read temperature information.
 - In 1 SPS mode, measurement is performed once per second, but in the current implementation it is not implemented to execute temp_gen every second. Prepare a counter variable and generate temperature only when it reaches a certain numerical value.
 
-# Special Thunks
-The library for the ADT 7310 used for the test environment is [scogswell/ArduinoADT 7310] (https://github.com/scogswell/ArduinoADT7310).
-
 
 # References
 [wsnakのブログ](http://www.wsnak.com/wsnakblog/?p=249)
@@ -66,6 +63,4 @@ The library for the ADT 7310 used for the test environment is [scogswell/Arduino
 [秋月電子通商](http://akizukidenshi.com/catalog/g/gM-06708/)
 
 [Analog Devices](https://www.analog.com/jp/index.html)
-
-[scogswell/ArduinoADT7310](https://github.com/scogswell/ArduinoADT7310)
 

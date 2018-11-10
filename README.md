@@ -59,9 +59,6 @@ adt7310.hでは
 - SPI通信によって0x00が送信（エミュレータから見れば受信）した際の挙動。レジスタ0x00にアクセスしたものとの差異が検出できない。デフォルトでは温度情報をreadするためのコマンドバイト列として処理する。
 - 1 SPS modeのとき，1秒に1回の測定を行うが，現在の実装では1秒毎にtemp_genを実行する実装になっていない。カウンタ変数を用意し，一定の数値になったときのみ温度を生成する。
 
-# 実装に際して
-テスト環境に使用したADT7310用ライブラリは[scogswell/ArduinoADT7310](https://github.com/scogswell/ArduinoADT7310)です。
-
 
 # 参考文献
 [wsnakのブログ](http://www.wsnak.com/wsnakblog/?p=249)
@@ -69,6 +66,4 @@ adt7310.hでは
 [秋月電子通商](http://akizukidenshi.com/catalog/g/gM-06708/)
 
 [Analog Devices](https://www.analog.com/jp/index.html)
-
-[scogswell/ArduinoADT7310](https://github.com/scogswell/ArduinoADT7310)
 
