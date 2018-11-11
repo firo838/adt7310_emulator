@@ -28,8 +28,8 @@ adt7310_init(void)
 /*
  *  Initialize adt7310_t accordingly
  */
-    handle->reg0    = 0x80;     // default 0x80 Resolution is 13bit, Mode is continuous read.
-    handle->reg1    = 0x00;     // default 0x00
+    handle->reg0    = 0x80;     // default 0x80 status RDY bit is enabled.
+    handle->reg1    = 0x00;     // default 0x00 Resolution is 13bit, Mode is continuous read.
     handle->reg2[0] = 0x00;     // default 0x0000
     handle->reg2[1] = 0x00;     
     handle->reg3    = 0xC0;     // default 0xC0

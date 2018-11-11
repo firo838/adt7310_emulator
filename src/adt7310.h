@@ -23,8 +23,8 @@
 #include <sys/poll.h>  
 
 // #define DEBUG_PRINT
-// #define PRINT_SPI_COMM_DEBUG
-#define PRINT_SPI_COMM
+#define PRINT_SPI_COMM_DEBUG
+//#define PRINT_SPI_COMM
 
 #define REG_NAME_STATSUS                0x00
 #define REG_NAME_CONFIGURATION          0x01
