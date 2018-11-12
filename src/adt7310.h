@@ -12,15 +12,16 @@
 * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 *
 */
+#include <sys/poll.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <sys/un.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
 #include <time.h>
-#include <sys/poll.h>  
+#include <unistd.h>
 
 // #define DEBUG_PRINT
 #define PRINT_SPI_COMM_DEBUG
@@ -58,3 +59,4 @@ float random_temp();
 void set_temp(adt7310_t *handle);
 void adt7310(adt7310_t *handle, u_int8_t input, int cs);
 int get_server_socket(const char *const path);
+void e4adt7310_log(char *rw, char *s, u_int8_t buffer, int c);

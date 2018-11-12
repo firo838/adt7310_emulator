@@ -72,10 +72,6 @@ gen_temp2(adt7310_t *handle)
     char fra[8];
     float a, t = random_temp();
 
-    #ifdef DEBUG_PRINT
-        printf("random_temp : t = %f\n",t); // Checking random_temp() behavior is correct
-    #endif
-
     // res_flag : 0 is 13 bit mode, 1 is 16 bit mode.
     int res_flag = -1;
     // check resolution
@@ -98,9 +94,6 @@ gen_temp2(adt7310_t *handle)
 		}else{
     		fra[i] = '0';
 	    }
-        #ifdef DEBUG_PRINT
-            printf("gen_temp2 : i:%d , a = %f\n",i,a);  
-        #endif
     }
 	fraction = strtol(fra, NULL, 2); // convert str to long
 
@@ -152,7 +145,6 @@ adt7310(adt7310_t *handle, u_int8_t input, int cs)
     u_int8_t buffer[2];
     int rw_flag = -1;
     int cnt_flag = -1;
-    int i;
 
     // write is 0, read is 1.
     if((input & 0x40) == 0x40){
@@ -181,17 +173,25 @@ adt7310(adt7310_t *handle, u_int8_t input, int cs)
             if(cnt_flag == 1 && rw_flag == 0){
                 // continuous mode is enabled and write mode is enabled
                 // 0x00 default processing
-                for(i = 0; i < 2; i++){
-                    buffer[i] = handle->reg2[i];
-                    write(cs, &buffer[i], 1);
-                    #ifdef PRINT_SPI_COMM_DEBUG
-                        printf("write : %02hhx (Temperature value : read (deafult 0x00))\n", buffer[i]);
-                    #endif
-                    #ifdef PRINT_SPI_COMM
-                        printf("write : %02hhx\n", buffer[i]);
-                    #endif
+                // command byte -> 0x00 -> 0x00の順で受け取り，writeする
+                if(read(cs ,&buffer[0], 1) > 0){
+                    e4adt7310_log("read", "read (deafult 0x00)", buffer[0], 1);
+                    if(buffer[0] == 0x00){
+                        buffer[0] = handle->reg2[0];                
+                        write(cs, &buffer[0], 1);
+                        e4adt7310_log("write", "Temperature value : read (deafult 0x00)", buffer[0], 1);
+                        // The second read method
+                        if(read(cs, &buffer[1], 1) > 0){
+                            e4adt7310_log("read", "read (deafult 0x00)", buffer[0], 2);
+                            if(buffer[1] == 0x00){
+                                write(cs, &buffer[1], 1);
+                                e4adt7310_log("write", "Temperature value : read (deafult 0x00)", buffer[1], 2);
+                            }else{
+                                // adt7310(handle, buffer[1], cs);
+                            }
+                        }
+                    }
                 }
-                handle->reg0 |= 0x80;   // status : RDY bit change to disable
             }else if(rw_flag == 1){
                 // read mode is enabled
                 // Note : Usage prohibited : Rewrite processing of status register(command byte : 0x00)
@@ -200,13 +200,10 @@ adt7310(adt7310_t *handle, u_int8_t input, int cs)
                 // write status
                 buffer[0] = handle->reg0;
                 write(cs, &buffer, 1);
-                #ifdef PRINT_SPI_COMM_DEBUG
-                    printf("write : %02hhx (status register : read)\n", buffer[0]);
-                #endif
-                #ifdef PRINT_SPI_COMM
-                    printf("write : %02hhx\n", buffer[0]);
-                #endif
+                e4adt7310_log("write", "status register : read", buffer[0], 0);
             }
+            
+            handle->reg0 |= 0x80;   // status : RDY bit change to disable
 
             break;
         case REG_NAME_CONFIGURATION:
@@ -216,48 +213,36 @@ adt7310(adt7310_t *handle, u_int8_t input, int cs)
                 // change config
                 // read config command byte
                 if(read(cs, &in, 1) > 0){
-                #ifdef PRINT_SPI_COMM_DEBUG
-                    printf("read  : %02hhx (configuration register : set)\n", in);
-                #endif
-                #ifdef PRINT_SPI_COMM
-                    printf("read  : %02hhx\n", in);
-                #endif
+                    e4adt7310_log("read", "configuration register : set", in, 0);
 
-                // change resolution.
-                if((in & 0x80) == 0x80)  handle->reg1 |= 0x80;
-                if((in & 0x80) == 0x00)  handle->reg1 &= 0x7f;
+                    // change resolution.
+                    if((in & 0x80) == 0x80)  handle->reg1 |= 0x80;
+                    if((in & 0x80) == 0x00)  handle->reg1 &= 0x7f;
 
-                // change mode.
-                if((in & 0x60) == 0x00)  handle->reg1 = (handle->reg1 & 0x9F) | 0x00;   // set continuous mode.
-                if((in & 0x60) == 0x20){
-                    handle->reg1 = (handle->reg1 & 0x9F) | 0x20;   // set one-shot mode.
-                    // set_temp(handle);
-                    handle->reg0 &= 0x7f;   // status : RDY bit change to enable
-                    buffer[0] = handle->reg1;
-                    if(write(cs, &buffer, 1) > 0){
-                        #ifdef PRINT_SPI_COMM_DEBUG
-                            printf("write : %02hhx (configuration register : set)\n", buffer[0]);
-                        #endif
-                        #ifdef PRINT_SPI_COMM
-                            printf("write : %02hhx\n", buffer[0]);
-                        #endif
-                        handle->reg0 |= 0x80;   // status : RDY bit change to disable
-                    }
-                }  
-                if((in & 0x60) == 0x40)  handle->reg1 = (handle->reg1 & 0x9F) | 0x40;   // set sps mode.
-                if((in & 0x60) == 0x60)  handle->reg1 = (handle->reg1 & 0x9F) | 0x60;   // set shutdown mode.
+                    // change mode.
+                    if((in & 0x60) == 0x00)  handle->reg1 = (handle->reg1 & 0x9F) | 0x00;   // set continuous mode.
+                    if((in & 0x60) == 0x20){
+                        handle->reg1 = (handle->reg1 & 0x9F) | 0x20;   // set one-shot mode.
+                        // set_temp(handle);
+                        handle->reg0 &= 0x7f;   // status : RDY bit change to enable
+                        buffer[0] = handle->reg1;
+                        if(write(cs, &buffer[0], 1) > 0){
+                            e4adt7310_log("write", "configuration register : set", buffer[0], 0);
+                            handle->reg0 |= 0x80;   // status : RDY bit change to disable
+                        }
+                    }  
+                    if((in & 0x60) == 0x40)  handle->reg1 = (handle->reg1 & 0x9F) | 0x40;   // set sps mode.
+                    if((in & 0x60) == 0x60)  handle->reg1 = (handle->reg1 & 0x9F) | 0x60;   // set shutdown mode.
                 }
             }else{
                 // read mode is enabled
                 // write configuration register
-                buffer[0] = handle->reg1;
-                write(cs, &buffer, 1);
-                #ifdef PRINT_SPI_COMM_DEBUG
-                    printf("write : %02hhx (configuration register : read)\n", buffer[0]);
-                #endif
-                #ifdef PRINT_SPI_COMM
-                    printf("write : %02hhx\n", buffer[0]);
-                #endif
+                if(read(cs, &buffer[0], 1) > 0){
+                    e4adt7310_log("read", "configuration register : read", in, 0);
+                    buffer[0] = handle->reg1;
+                    write(cs, &buffer[0], 1);
+                    e4adt7310_log("write", "configuration register : read", buffer[0], 0);
+                }
             }
 
             break;
@@ -267,16 +252,24 @@ adt7310(adt7310_t *handle, u_int8_t input, int cs)
 
             set_temp(handle);            
 
-            for(i = 0; i < 2; i++){
-                buffer[i] = handle->reg2[i];
-                write(cs, &buffer[i], 1);
-                #ifdef PRINT_SPI_COMM_DEBUG
-                    printf("write : %02hhx (temperature register : read)\n", buffer[i]);
-                #endif
-                #ifdef PRINT_SPI_COMM
-                    printf("write : %02hhx\n", buffer[i]);
-                #endif
+            if(read(cs, &buffer[0], 1) > 0){
+                e4adt7310_log("read", "read (deafult 0x00)", buffer[0], 1);
+                if(buffer[0] == 0x00){
+                    buffer[0] = handle->reg2[0];
+                    write(cs, &buffer[0], 1);
+                    e4adt7310_log("write", "temperature register : read", buffer[0], 1);
+                    if(read(cs, &buffer[1], 1) > 0){
+                        e4adt7310_log("read", "read (deafult 0x00)", buffer[0], 2);
+                        if(buffer[1] == 0x00){
+                            write(cs, &buffer[1], 1);
+                            e4adt7310_log("write", "temperature register : read", buffer[1], 2);
+                        }else{
+                            // adt7310(handle, buffer[1], cs);
+                        }
+                    }
+                }
             }
+            
             handle->reg0 |= 0x80;   // status : RDY bit change to enable
 
             break;
@@ -284,14 +277,14 @@ adt7310(adt7310_t *handle, u_int8_t input, int cs)
             // return id.
             // Both rw_flag is ok
 
-            buffer[0] = handle->reg3;
-            write(cs, &buffer[0], 1);
-            #ifdef PRINT_SPI_COMM_DEBUG
-                printf("write : %02hhx (ID register : read)\n", buffer[0]);
-            #endif
-            #ifdef PRINT_SPI_COMM
-                printf("write : %02hhx\n", buffer[0]);
-            #endif
+            if(read(cs, &buffer[0], 1) > 0){
+                e4adt7310_log("read", "read (deafult 0x00)", buffer[0], 0);
+                if(buffer[0] == 0x00){
+                    buffer[0] = handle->reg3;
+                    write(cs, &buffer[0], 1);
+                    e4adt7310_log("write", "ID register : read", buffer[0], 0);
+                }
+            }
             
             break;
         case REG_NAME_TCRIT_SETPOINT:
@@ -299,26 +292,30 @@ adt7310(adt7310_t *handle, u_int8_t input, int cs)
 
             if(rw_flag == 0){
                 // write mode is enabled
-                for(i = 0; i < 2; i++){
-                    read(cs, &buffer[i], 1);
-                    handle->reg4[i] = buffer[i];
-                    #ifdef PRINT_SPI_COMM_DEBUG
-                        printf("read  : %02hhx (Tcrit Setpoint : set)\n", buffer[i]);
-                    #endif
-                    #ifdef PRINT_SPI_COMM
-                        printf("read  : %02hhx\n", buffer[i]);
-                    #endif
+                if(read(cs, &buffer[0], 1) > 0){
+                    e4adt7310_log("read", "read (deafult 0x00)", buffer[0], 0);
+                    handle->reg4[0] = buffer[0];
+                    if(read(cs, &buffer[1], 1) > 0){
+                        e4adt7310_log("read", "Tcrit Setpoint : set", buffer[1], 0);
+                        handle->reg4[1] = buffer[1];
+                    }
                 }
             }else{
-                for(i = 0; i < 2; i++){
-                    buffer[i] = handle->reg4[i];
-                    write(cs, &buffer[i], 1);
-                    #ifdef PRINT_SPI_COMM_DEBUG
-                        printf("write : %02hhx (Tcrit Setpoint : read)\n", buffer[i]);
-                    #endif
-                    #ifdef PRINT_SPI_COMM
-                        printf("write : %02hhx\n", buffer[i]);
-                    #endif
+                if(read(cs, &buffer[0], 1) > 0){
+                    e4adt7310_log("read", "read (deafult 0x00)", buffer[0], 0);
+                    if(buffer[0] == 0x00){
+                        buffer[0] = handle->reg4[0];
+                        write(cs, &buffer[0], 1);
+                        e4adt7310_log("write", "Tcrit Setpoint : read", buffer[0], 0);
+                        if(read(cs, &buffer[0], 1) > 0){
+                            e4adt7310_log("read", "read (deafult 0x00)", buffer[0], 0);
+                            if(buffer[1] == 0x00){
+                                buffer[1] = handle->reg4[1];
+                                write(cs, &buffer[1], 1);
+                                e4adt7310_log("write", "Tcrit Setpoint : read", buffer[1], 0);
+                            }
+                        }
+                    }
                 }
             }
             
@@ -328,26 +325,31 @@ adt7310(adt7310_t *handle, u_int8_t input, int cs)
 
             if(rw_flag == 0){
                 // write mode is enabled
-                for(i = 0; i < 2; i++){
-                    read(cs, &buffer[i], 1);
-                    handle->reg5[i] = buffer[i];
-                    #ifdef PRINT_SPI_COMM_DEBUG
-                        printf("read  : %02hhx (Thyst Setpoint : set)\n", buffer[i]);
-                    #endif
-                    #ifdef PRINT_SPI_COMM
-                        printf("read  : %02hhx\n", buffer[i]);
-                    #endif
+                if(read(cs, &buffer[0], 1) > 0){
+                    handle->reg5[0] = buffer[0];
+                    e4adt7310_log("read", "Thyst Setpoint : set", buffer[0], 0);
+                    handle->reg5[0] = buffer[0];
+                    if(read(cs, &buffer[1], 1) > 0){
+                        e4adt7310_log("read", "Thyst Setpoint : set", buffer[1], 0);
+                        handle->reg5[1] = buffer[1];
+                    } 
                 }
             }else{
-                for(i = 0; i < 2; i++){
-                    buffer[i] = handle->reg5[i];
-                    write(cs, &buffer[i], 1);
-                    #ifdef PRINT_SPI_COMM_DEBUG
-                        printf("write : %02hhx (Thyst Setpoint : read)\n", buffer[i]);
-                    #endif
-                    #ifdef PRINT_SPI_COMM
-                        printf("write : %02hhx\n", buffer[i]);
-                    #endif
+                if(read(cs, &buffer[0], 1) > 0){
+                    e4adt7310_log("read", "read (deafult 0x00)", buffer[0], 0);
+                    if(buffer[0] == 0x00){
+                        buffer[0] = handle->reg5[0];
+                        write(cs, &buffer[0], 1);
+                        e4adt7310_log("write", "Thyst Setpoint : read", buffer[0], 0);
+                        if(read(cs, &buffer[0], 1) > 0){
+                            e4adt7310_log("read", "read (deafult 0x00)", buffer[0], 0);
+                            if(buffer[1] == 0x00){
+                                buffer[1] = handle->reg5[1];
+                                write(cs, &buffer[1], 1);
+                                e4adt7310_log("write", "Thyst Setpoint : read", buffer[1], 0);
+                            }
+                        }
+                    }
                 }
             }
             
@@ -357,26 +359,31 @@ adt7310(adt7310_t *handle, u_int8_t input, int cs)
 
             if(rw_flag == 0){
                 // write mode is enabled
-                for(i = 0; i < 2; i++){
-                    read(cs, &buffer[i], 1);
-                    handle->reg6[i] = buffer[i];
-                    #ifdef PRINT_SPI_COMM_DEBUG
-                        printf("read  : %02hhx (Thigh Setpoint : set)\n", buffer[i]);
-                    #endif
-                    #ifdef PRINT_SPI_COMM
-                        printf("read  : %02hhx\n", buffer[i]);
-                    #endif
-                }
+                if(read(cs, &buffer[0], 1) > 0){
+                    handle->reg6[0] = buffer[0];
+                    e4adt7310_log("read", "Thigh Setpoint : set", buffer[0], 0);
+                    handle->reg6[0] = buffer[0];
+                    if(read(cs, &buffer[1], 1) > 0){
+                        e4adt7310_log("read", "Thigh Setpoint : set", buffer[1], 0);
+                        handle->reg6[1] = buffer[1];
+                    }
+                } 
             }else{
-                for(i = 0; i < 2; i++){
-                    buffer[i] = handle->reg6[i];
-                    write(cs, &buffer[i], 1);
-                    #ifdef PRINT_SPI_COMM_DEBUG
-                        printf("write : %02hhx (Thigh Setpoint : read)\n", buffer[i]);
-                    #endif
-                    #ifdef PRINT_SPI_COMM
-                        printf("write : %02hhx\n", buffer[i]);
-                    #endif
+                if(read(cs, &buffer[0], 1) > 0){
+                    e4adt7310_log("read", "Tread (deafult 0x00)", buffer[0], 0);
+                    if(buffer[0] == 0x00){
+                        buffer[0] = handle->reg6[0];
+                        write(cs, &buffer[0], 1);
+                        e4adt7310_log("write", "Thigh Setpoint : read", buffer[0], 0);
+                        if(read(cs, &buffer[0], 1) > 0){
+                            e4adt7310_log("read", "read (deafult 0x00)", buffer[0], 0);
+                            if(buffer[0] == 0x00){
+                                buffer[1] = handle->reg6[1];
+                                write(cs, &buffer[1], 1);
+                                e4adt7310_log("write", "Thigh Setpoint : read", buffer[1], 0);
+                            }
+                        }
+                    }
                 }
             }
             
@@ -386,26 +393,30 @@ adt7310(adt7310_t *handle, u_int8_t input, int cs)
 
             if(rw_flag == 0){
                 // write mode is enabled
-                for(i = 0; i < 2; i++){
-                    read(cs, &buffer[i], 1);
-                    handle->reg7[i] = buffer[i];
-                    #ifdef PRINT_SPI_COMM_DEBUG
-                        printf("read  : %02hhx (Tlow Setpoint :set)\n", buffer[i]);
-                    #endif
-                    #ifdef PRINT_SPI_COMM
-                        printf("read  : %02hhx\n", buffer[i]);
-                    #endif
-                }
+                if(read(cs, &buffer[0], 1) > 0){
+                    e4adt7310_log("read", "Tlow Setpoint : set", buffer[0], 0);
+                    handle->reg7[0] = buffer[0];
+                    if(read(cs, &buffer[1], 1) > 0){
+                        e4adt7310_log("read", "Tlow Setpoint : set", buffer[1], 0);
+                        handle->reg7[1] = buffer[1];
+                    }
+                } 
             }else{
-                for(i = 0; i < 2; i++){
-                    buffer[i] = handle->reg7[i];
-                    write(cs, &buffer[i], 1);
-                    #ifdef PRINT_SPI_COMM_DEBUG
-                        printf("write : %02hhx (Tlow Setpoint : read)\n", buffer[i]);
-                    #endif
-                    #ifdef PRINT_SPI_COMM
-                        printf("write : %02hhx\n", buffer[i]);
-                    #endif
+                if(read(cs, &buffer[0], 1) > 0){
+                    e4adt7310_log("read", "read (deafult 0x00)", buffer[0], 0);
+                    if(buffer[0] == 0x00){
+                        buffer[0] = handle->reg7[0];
+                        write(cs, &buffer[0], 1);
+                        e4adt7310_log("write", "Tlow Setpoint : read", buffer[0], 0);
+                        if(read(cs, &buffer[0], 1) > 0){
+                            e4adt7310_log("read", "read (deafult 0x00)", buffer[0], 0);
+                            if(buffer[0] == 0x00){
+                                buffer[1] = handle->reg7[1];
+                                write(cs, &buffer[1], 1);
+                                e4adt7310_log("write", "Tlow Setpoint : read", buffer[1], 0);
+                            }
+                        }
+                    }
                 }
             }
             
@@ -416,7 +427,23 @@ adt7310(adt7310_t *handle, u_int8_t input, int cs)
                 #endif
             break;
     }
+}
 
+void e4adt7310_log(char *rw, char *s, u_int8_t buffer, int c)
+{
+    #ifdef PRINT_SPI_COMM_DEBUG
+        printf("%5s : %02hhx (",rw, buffer);
+        printf("%s)",s);
+        if(c != 0)  printf(" %d",c);
+        printf("\n");
+    #endif
+    #ifdef PRINT_SPI_COMM
+        printf("write : %02hhx\n", buffer);
+        printf("%5s : %02hhx\n",rw, buffer);
+    #endif
+    #ifdef DEBUG_PRINT
+        printf("%s=%x\n",s,buffer);
+    #endif
 }
 
 int
@@ -493,7 +520,8 @@ main(int argc, char *argv[])
              * The ADT 7310 requires 240 microseconds to repel the obtained temperature data to digital data.
              */
 
-            /* check shutdown mode
+            /* 
+             * check shutdown mode
              * Shutdown the temperature measurement and conversion circuit.
              * Register read / write is possible even during shutdown.
              * sd_flag == 0 is shutdown mode, 1 is other mode.
@@ -507,17 +535,13 @@ main(int argc, char *argv[])
             if((mode == 0x00) && ((handle->reg0 & 0x80) == 0x00) && sd_flag){
                 // continuous mode
                 set_temp(handle);
-                #ifdef DEBUG_PRINT
-                    printf("Mode : Continuous : handle->reg1=%x\n", handle->reg1);  
-                #endif
+                e4adt7310_log("", "Mode : Continuous : handle->reg1", handle->reg1, 0);
                 usleep(CONVERSION_TIME);
             }else if((mode == 0x20) && ((handle->reg0 & 0x80) == 0x80) && sd_flag){
                 // One-shot mode.
                 // One-shot mode is processing at received the command byte in adt7310 function.
                 set_temp(handle);
-                #ifdef DEBUG_PRINT
-                    printf("Mode : One-Shot : handle->reg1=%x\n", handle->reg1);  
-                #endif
+                e4adt7310_log("", "Mode : One-Shot : handle->reg1", handle->reg1, 0);
                 usleep(CONVERSION_TIME);
             }else if(mode == 0x40 && sd_flag){
                 // 1 SPS mode.
@@ -526,18 +550,14 @@ main(int argc, char *argv[])
                     // Measure every 1 second and set the value.
                     // This is fake counter
                     set_temp(handle);
-                    #ifdef DEBUG_PRINT
-                        printf("Mode : 1 SPS : handle->reg1=%x\n", handle->reg1);  
-                    #endif
+                    e4adt7310_log("", "Mode : 1 SPS : handle->reg1", handle->reg1, 0);
                     usleep(CONVERSION_TIME);
                     counter = 0;
                 }
             }else if(mode == 0x60){
                 // shutdown mode.
                 // This process is skipped.
-                #ifdef DEBUG_PRINT
-                    printf("Mode : Shutdown : handle->reg1=%x\n", handle->reg1);  
-                #endif
+                e4adt7310_log("", "Mode : Shutdown : handle->reg1", handle->reg1, 0);
             }
 
             counter++;
@@ -547,12 +567,7 @@ main(int argc, char *argv[])
             if(fds.revents > 0) {
                 // input (read from spi)
                 if(read(cs, &in, 1) > 0){
-                    #ifdef PRINT_SPI_COMM_DEBUG
-                        printf("read  : %02hhx (main() for loop)\n", in);
-                    #endif
-                    #ifdef PRINT_SPI_COMM
-                        printf("read  : %02hhx\n", in);
-                    #endif
+                    e4adt7310_log("read", "main() for loop", in, 0);
                     adt7310(handle, in, cs);
                 }
             }
