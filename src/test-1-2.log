@@ -1,0 +1,57 @@
+ read : 90 (main() for loop)
+ read : 00 (read (deafult 0x00)) 1
+write : 06 (temperature register : read) 1
+ read : 06 (read (deafult 0x00)) 2
+write : 00 (temperature register : read) 2
+ read : 92 (main() for loop)
+ read : 00 (read (deafult 0x00)) 1
+write : 04 (temperature register : read) 1
+ read : 04 (read (deafult 0x00)) 2
+write : 00 (temperature register : read) 2
+ read : 94 (main() for loop)
+ read : 00 (read (deafult 0x00)) 1
+write : 05 (temperature register : read) 1
+ read : 05 (read (deafult 0x00)) 2
+write : 00 (temperature register : read) 2
+ read : 96 (main() for loop)
+ read : 00 (read (deafult 0x00)) 1
+write : 05 (temperature register : read) 1
+ read : 05 (read (deafult 0x00)) 2
+write : 00 (temperature register : read) 2
+
+
+ read : 04 (main() for loop)
+ read : 00 (read (deafult 0x00)) 1
+write : 05 (Temperature value : read (deafult 0x00)) 1
+ read : 05 (read (deafult 0x00)) 2
+write : 00 (Temperature value : read (deafult 0x00)) 2
+ read : 08 (main() for loop)
+ read : 00 (configuration register : set)
+ read : 0c (main() for loop)
+ read : 00 (configuration register : set)
+ read : 10 (main() for loop)
+ read : 00 (read (deafult 0x00)) 1
+write : 03 (temperature register : read) 1
+ read : 03 (read (deafult 0x00)) 2
+ read : 00 (main() for loop)
+ read : 18 (read (deafult 0x00)) 1
+ read : 00 (main() for loop)
+ read : 20 (read (deafult 0x00)) 1
+ read : 00 (main() for loop)
+ read : 24 (read (deafult 0x00)) 1
+ read : 00 (main() for loop)
+ read : 2c (read (deafult 0x00)) 1
+ read : 00 (main() for loop)
+ read : 28 (read (deafult 0x00)) 1
+ read : 00 (main() for loop)
+ read : 30 (read (deafult 0x00)) 1
+ read : 00 (main() for loop)
+ read : 34 (read (deafult 0x00)) 1
+ read : 00 (main() for loop)
+ read : 38 (read (deafult 0x00)) 1
+ read : 00 (main() for loop)
+ read : 3c (read (deafult 0x00)) 1
+ read : 00 (main() for loop)
+ 
+ 
+ 
