@@ -32,6 +32,7 @@ Temporary Items
 
 # End of https://www.gitignore.io/api/macos
 
-
+# my ignore settings
+*.log
 sketch_src/
 test/
