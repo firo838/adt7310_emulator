@@ -53,8 +53,7 @@ is defined.
 Use it according to your needs.
 
 # Known ISSUE
-- Behavior when 0x00 is transmitted by SPI communication. Difference from register 0x00 accessed can not be detected.By default, it processes it as a sequence of command bytes to read temperature information.
-- In 1 SPS mode, measurement is performed once per second, but in the current implementation it is not implemented to execute temp_gen every second. Prepare a counter variable and generate temperature only when it reaches a certain numerical value.
+- In 1 SPS mode, measurement is performed once per second, but in the current implementation it is not implemented to execute temp_gen every second. Prepare a counter variable and generate temperature only when it reaches a certain numerical value.(#2)
 
 
 # References
