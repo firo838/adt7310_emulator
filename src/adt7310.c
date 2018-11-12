@@ -483,9 +483,17 @@ main(int argc, char *argv[])
     struct pollfd fds;
     int ret = -1;
 
+<<<<<<< HEAD
     unsigned int counter = 0;
     int sd_flag = -1;
 
+=======
+    int sd_flag = -1;
+
+    time_t timer = time(&timer);
+    time_t sps_timer;
+
+>>>>>>> dev
     srand(SEED);
 
     if(argc == 1) {
@@ -546,6 +554,7 @@ main(int argc, char *argv[])
             }else if(mode == 0x40 && sd_flag){
                 // 1 SPS mode.
                 // This process is skipped.
+<<<<<<< HEAD
                 if(counter == 100000000){
                     // Measure every 1 second and set the value.
                     // This is fake counter
@@ -553,6 +562,14 @@ main(int argc, char *argv[])
                     e4adt7310_log("", "Mode : 1 SPS : handle->reg1", handle->reg1, 0);
                     usleep(CONVERSION_TIME);
                     counter = 0;
+=======
+                time(&sps_timer);
+                if(difftime(sps_timer, timer) > 1.0){
+                    timer = sps_timer;
+                    set_temp(handle);
+                    e4adt7310_log("", "Mode : 1 SPS : handle->reg1", handle->reg1, 0);
+                    usleep(CONVERSION_TIME);
+>>>>>>> dev
                 }
             }else if(mode == 0x60){
                 // shutdown mode.
@@ -560,8 +577,11 @@ main(int argc, char *argv[])
                 e4adt7310_log("", "Mode : Shutdown : handle->reg1", handle->reg1, 0);
             }
 
+<<<<<<< HEAD
             counter++;
 
+=======
+>>>>>>> dev
             poll(&fds, 1, 0);
 
             if(fds.revents > 0) {

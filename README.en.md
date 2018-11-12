@@ -52,9 +52,6 @@ is defined.
 
 Use it according to your needs.
 
-# Known ISSUE
-- In 1 SPS mode, measurement is performed once per second, but in the current implementation it is not implemented to execute temp_gen every second. Prepare a counter variable and generate temperature only when it reaches a certain numerical value.(#2)
-
 
 # References
 [wsnakのブログ](http://www.wsnak.com/wsnakblog/?p=249)
