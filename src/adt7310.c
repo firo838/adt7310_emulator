@@ -189,8 +189,14 @@ adt7310(adt7310_t *handle, u_int8_t input, int cs)
                             }else{
                                 // adt7310(handle, buffer[1], cs);
                             }
+                        }else{
+                            perror("read");
+                            exit(EXIT_FAILURE);
                         }
                     }
+                }else{
+                    perror("read");
+                    exit(EXIT_FAILURE);
                 }
             }else if(rw_flag == 1){
                 // read mode is enabled
@@ -229,10 +235,16 @@ adt7310(adt7310_t *handle, u_int8_t input, int cs)
                         if(write(cs, &buffer[0], 1) > 0){
                             e4adt7310_log("write", "configuration register : set", buffer[0], 0);
                             handle->reg0 |= 0x80;   // status : RDY bit change to disable
+                        }else{
+                            perror("write");
+                            exit(EXIT_FAILURE);
                         }
                     }  
                     if((in & 0x60) == 0x40)  handle->reg1 = (handle->reg1 & 0x9F) | 0x40;   // set sps mode.
                     if((in & 0x60) == 0x60)  handle->reg1 = (handle->reg1 & 0x9F) | 0x60;   // set shutdown mode.
+                }else{
+                    perror("read");
+                    exit(EXIT_FAILURE);
                 }
             }else{
                 // read mode is enabled
@@ -242,6 +254,9 @@ adt7310(adt7310_t *handle, u_int8_t input, int cs)
                     buffer[0] = handle->reg1;
                     write(cs, &buffer[0], 1);
                     e4adt7310_log("write", "configuration register : read", buffer[0], 0);
+                }else{
+                    perror("read");
+                    exit(EXIT_FAILURE);
                 }
             }
 
@@ -266,8 +281,14 @@ adt7310(adt7310_t *handle, u_int8_t input, int cs)
                         }else{
                             // adt7310(handle, buffer[1], cs);
                         }
+                    }else{
+                        perror("read");
+                        exit(EXIT_FAILURE);
                     }
                 }
+            }else{
+                perror("read");
+                exit(EXIT_FAILURE);
             }
             
             handle->reg0 |= 0x80;   // status : RDY bit change to enable
@@ -284,6 +305,9 @@ adt7310(adt7310_t *handle, u_int8_t input, int cs)
                     write(cs, &buffer[0], 1);
                     e4adt7310_log("write", "ID register : read", buffer[0], 0);
                 }
+            }else{
+                perror("read");
+                exit(EXIT_FAILURE);
             }
             
             break;
@@ -298,7 +322,13 @@ adt7310(adt7310_t *handle, u_int8_t input, int cs)
                     if(read(cs, &buffer[1], 1) > 0){
                         e4adt7310_log("read", "Tcrit Setpoint : set", buffer[1], 0);
                         handle->reg4[1] = buffer[1];
+                    }else{
+                        perror("read");
+                        exit(EXIT_FAILURE);
                     }
+                }else{
+                    perror("read");
+                    exit(EXIT_FAILURE);
                 }
             }else{
                 if(read(cs, &buffer[0], 1) > 0){
@@ -314,8 +344,14 @@ adt7310(adt7310_t *handle, u_int8_t input, int cs)
                                 write(cs, &buffer[1], 1);
                                 e4adt7310_log("write", "Tcrit Setpoint : read", buffer[1], 0);
                             }
+                        }else{
+                            perror("read");
+                            exit(EXIT_FAILURE);
                         }
                     }
+                }else{
+                    perror("read");
+                    exit(EXIT_FAILURE);
                 }
             }
             
@@ -332,7 +368,13 @@ adt7310(adt7310_t *handle, u_int8_t input, int cs)
                     if(read(cs, &buffer[1], 1) > 0){
                         e4adt7310_log("read", "Thyst Setpoint : set", buffer[1], 0);
                         handle->reg5[1] = buffer[1];
-                    } 
+                    }else{
+                        perror("read");
+                        exit(EXIT_FAILURE);
+                    }
+                }else{
+                    perror("read");
+                    exit(EXIT_FAILURE);
                 }
             }else{
                 if(read(cs, &buffer[0], 1) > 0){
@@ -348,8 +390,14 @@ adt7310(adt7310_t *handle, u_int8_t input, int cs)
                                 write(cs, &buffer[1], 1);
                                 e4adt7310_log("write", "Thyst Setpoint : read", buffer[1], 0);
                             }
+                        }else{
+                            perror("read");
+                            exit(EXIT_FAILURE);
                         }
                     }
+                }else{
+                    perror("read");
+                    exit(EXIT_FAILURE);
                 }
             }
             
@@ -366,8 +414,14 @@ adt7310(adt7310_t *handle, u_int8_t input, int cs)
                     if(read(cs, &buffer[1], 1) > 0){
                         e4adt7310_log("read", "Thigh Setpoint : set", buffer[1], 0);
                         handle->reg6[1] = buffer[1];
+                    }else{
+                        perror("read");
+                        exit(EXIT_FAILURE);
                     }
-                } 
+                }else{
+                    perror("read");
+                    exit(EXIT_FAILURE);
+                }
             }else{
                 if(read(cs, &buffer[0], 1) > 0){
                     e4adt7310_log("read", "Tread (deafult 0x00)", buffer[0], 0);
@@ -382,8 +436,14 @@ adt7310(adt7310_t *handle, u_int8_t input, int cs)
                                 write(cs, &buffer[1], 1);
                                 e4adt7310_log("write", "Thigh Setpoint : read", buffer[1], 0);
                             }
+                        }else{
+                            perror("read");
+                            exit(EXIT_FAILURE);
                         }
                     }
+                }else{
+                    perror("read");
+                    exit(EXIT_FAILURE);
                 }
             }
             
@@ -399,8 +459,14 @@ adt7310(adt7310_t *handle, u_int8_t input, int cs)
                     if(read(cs, &buffer[1], 1) > 0){
                         e4adt7310_log("read", "Tlow Setpoint : set", buffer[1], 0);
                         handle->reg7[1] = buffer[1];
+                    }else{
+                        perror("read");
+                        exit(EXIT_FAILURE);
                     }
-                } 
+                }else{
+                    perror("read");
+                    exit(EXIT_FAILURE);
+                }
             }else{
                 if(read(cs, &buffer[0], 1) > 0){
                     e4adt7310_log("read", "read (deafult 0x00)", buffer[0], 0);
@@ -415,8 +481,14 @@ adt7310(adt7310_t *handle, u_int8_t input, int cs)
                                 write(cs, &buffer[1], 1);
                                 e4adt7310_log("write", "Tlow Setpoint : read", buffer[1], 0);
                             }
+                        }else{
+                            perror("read");
+                            exit(EXIT_FAILURE);
                         }
                     }
+                }else{
+                    perror("read");
+                    exit(EXIT_FAILURE);
                 }
             }
             
@@ -567,6 +639,9 @@ main(int argc, char *argv[])
                 if(read(cs, &in, 1) > 0){
                     e4adt7310_log("read", "main() for loop", in, 0);
                     adt7310(handle, in, cs);
+                }else{
+                    perror("read");
+                    exit(EXIT_FAILURE);
                 }
             }
         }
