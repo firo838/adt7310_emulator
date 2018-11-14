@@ -173,7 +173,7 @@ adt7310(adt7310_t *handle, u_int8_t input, int cs)
             if(cnt_flag == 1 && rw_flag == 0){
                 // continuous mode is enabled and write mode is enabled
                 // 0x00 default processing
-                // command byte -> 0x00 -> 0x00の順で受け取り，writeする
+                // Receive data in the following order : command byte -> 0x00 -> 0x00 and write
                 if(read(cs ,&buffer[0], 1) > 0){
                     e4adt7310_log("read", "read (deafult 0x00)", buffer[0], 1);
                     if(buffer[0] == 0x00){
@@ -432,17 +432,16 @@ adt7310(adt7310_t *handle, u_int8_t input, int cs)
 void e4adt7310_log(char *rw, char *s, u_int8_t buffer, int c)
 {
     #ifdef PRINT_SPI_COMM_DEBUG
-        printf("%5s : %02hhx (",rw, buffer);
+        printf("%5s : %02hhx (", rw, buffer);
         printf("%s)",s);
         if(c != 0)  printf(" %d",c);
         printf("\n");
     #endif
     #ifdef PRINT_SPI_COMM
-        printf("write : %02hhx\n", buffer);
-        printf("%5s : %02hhx\n",rw, buffer);
+        printf("%5s : %02hhx\n", rw, buffer);
     #endif
     #ifdef DEBUG_PRINT
-        printf("%s=%x\n",s,buffer);
+        printf("%s = %x\n", s, buffer);
     #endif
 }
 
