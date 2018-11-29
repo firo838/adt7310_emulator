@@ -615,7 +615,7 @@ main(int argc, char *argv[])
     srand(SEED);
 
     if(argc == 1) {
-        if((s = get_server_socket("/tmp/spi")) == -1) {
+        if((s = get_server_socket(PATH_TO_SOCKT)) == -1) {
             exit(EXIT_FAILURE);
         }
     } else if(argc == 2) {

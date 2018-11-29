@@ -48,6 +48,8 @@
 #define CONVERSION_TIME                 240
 #define SEED                            10
 
+#define PATH_TO_SOCKT                   "/tmp/spi"
+
 typedef struct {
     u_int8_t reg0;      // status
     u_int8_t reg1;      // Configuration

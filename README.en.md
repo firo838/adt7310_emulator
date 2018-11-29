@@ -34,7 +34,7 @@ Grant execute privilege by chmod etc.
 ## Argument
 A file descriptor for imitating SPI communication on Linux is required as an argument.
 
-By default "/tmp/var/spi" is used and can be set to a free position by argument.
+By default "/tmp/spi" is used and can be set to a free position by argument.
 
 Example：
 ```
