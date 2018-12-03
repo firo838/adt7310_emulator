@@ -368,16 +368,16 @@ adt7310(adt7310_t *handle, u_int8_t input, int cs)
                             perror("write");
                             exit(EXIT_FAILURE);
                         }
-                        e4adt7310_log("write", "Tcrit Setpoint : read", buffer[0], 0);
-                        if(read(cs, &buffer[0], 1) > 0){
-                            e4adt7310_log("read", "read (deafult 0x00)", buffer[0], 0);
+                        e4adt7310_log("write", "Tcrit Setpoint : read", buffer[0], 1);
+                        if(read(cs, &buffer[1], 1) > 0){
+                            e4adt7310_log("read", "read (deafult 0x00)", buffer[1], 0);
                             if(buffer[1] == 0x00){
                                 buffer[1] = handle->reg4[1];
                                 if(write(cs, &buffer[1], 1) == -1){
                                     perror("write");
                                     exit(EXIT_FAILURE);
                                 }
-                                e4adt7310_log("write", "Tcrit Setpoint : read", buffer[1], 0);
+                                e4adt7310_log("write", "Tcrit Setpoint : read", buffer[1], 1);
                             }
                         }else{
                             perror("read");
@@ -421,7 +421,7 @@ adt7310(adt7310_t *handle, u_int8_t input, int cs)
                             exit(EXIT_FAILURE);
                         }
                         e4adt7310_log("write", "Thyst Setpoint : read", buffer[0], 0);
-                        if(read(cs, &buffer[0], 1) > 0){
+                        if(read(cs, &buffer[1], 1) > 0){
                             e4adt7310_log("read", "read (deafult 0x00)", buffer[0], 0);
                             if(buffer[1] == 0x00){
                                 buffer[1] = handle->reg5[1];
@@ -473,9 +473,9 @@ adt7310(adt7310_t *handle, u_int8_t input, int cs)
                             exit(EXIT_FAILURE);
                         }
                         e4adt7310_log("write", "Thigh Setpoint : read", buffer[0], 0);
-                        if(read(cs, &buffer[0], 1) > 0){
+                        if(read(cs, &buffer[1], 1) > 0){
                             e4adt7310_log("read", "read (deafult 0x00)", buffer[0], 0);
-                            if(buffer[0] == 0x00){
+                            if(buffer[1] == 0x00){
                                 buffer[1] = handle->reg6[1];
                                 if(write(cs, &buffer[1], 1) == -1){
                                     perror("write");
@@ -524,9 +524,9 @@ adt7310(adt7310_t *handle, u_int8_t input, int cs)
                             exit(EXIT_FAILURE);
                         }
                         e4adt7310_log("write", "Tlow Setpoint : read", buffer[0], 0);
-                        if(read(cs, &buffer[0], 1) > 0){
+                        if(read(cs, &buffer[1], 1) > 0){
                             e4adt7310_log("read", "read (deafult 0x00)", buffer[0], 0);
-                            if(buffer[0] == 0x00){
+                            if(buffer[1] == 0x00){
                                 buffer[1] = handle->reg7[1];
                                 if(write(cs, &buffer[1], 1) == -1){
                                     perror("write");
